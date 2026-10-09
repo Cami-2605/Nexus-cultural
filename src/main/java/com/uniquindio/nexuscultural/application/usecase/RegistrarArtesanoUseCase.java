@@ -6,10 +6,12 @@ import com.uniquindio.nexuscultural.domain.repository.ArtesanoRepository;
 import com.uniquindio.nexuscultural.domain.valueobject.Email;
 import com.uniquindio.nexuscultural.domain.valueobject.TrayectoriaCultural;
 import com.uniquindio.nexuscultural.domain.valueobject.UbicacionGeografica;
+import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+@Service
 public class RegistrarArtesanoUseCase {
 
     private final ArtesanoRepository artesanoRepository;
