@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.Collections;
 
 @Getter
 public class Comprador extends Usuario {
@@ -23,12 +24,13 @@ public class Comprador extends Usuario {
 
     @Builder
     private Comprador(UUID id,
-                     String nombreCompleto,
-                     Email email,
-                     LocalDateTime fechaRegistro, List<UUID> favoritos,
-                     UbicacionGeografica direccionEntrega) {
+                      String nombreCompleto,
+                      Email email,
+                      LocalDateTime fechaRegistro,
+                      List<UUID> favoritos,
+                      UbicacionGeografica direccionEntrega) {
         super(id, nombreCompleto, email, RolUsuario.COMPRADOR, fechaRegistro);
-        this.favoritos = new ArrayList<>(favoritos);
+        this.favoritos = favoritos != null ? new ArrayList<>(favoritos) : new ArrayList<>();
         this.direccionEntrega = direccionEntrega;
     }
 
@@ -37,8 +39,21 @@ public class Comprador extends Usuario {
         if (direccionEntrega == null) {
             throw new ReglaDominioException("El comprador debe tener una dirección de entrega.");
         }
-        return new Comprador(UUID.randomUUID(), nombreCompleto, email, ahora, List.of(), direccionEntrega)
-                ;
+        return new Comprador(UUID.randomUUID(), nombreCompleto, email, ahora, List.of(), direccionEntrega);
+    }
+
+    public void actualizarPerfil(String nuevoNombreCompleto) {
+        if (nuevoNombreCompleto == null || nuevoNombreCompleto.trim().isEmpty()) {
+            throw new ReglaDominioException("El nombre completo no puede estar vacío.");
+        }
+        this.nombreCompleto = nuevoNombreCompleto.trim();
+    }
+
+    public void actualizarDireccionEntrega(UbicacionGeografica nuevaDireccion) {
+        if (nuevaDireccion == null) {
+            throw new ReglaDominioException("La dirección de entrega no puede ser nula.");
+        }
+        this.direccionEntrega = nuevaDireccion;
     }
 
     public void agregarFavorito(UUID articuloId) {
@@ -61,7 +76,7 @@ public class Comprador extends Usuario {
         }
     }
 
-    public void actualizarDireccionEntrega(UbicacionGeografica nuevaDireccion) {
-        this.direccionEntrega = nuevaDireccion;
+    public List<UUID> getFavoritos() {
+        return Collections.unmodifiableList(favoritos);
     }
 }
