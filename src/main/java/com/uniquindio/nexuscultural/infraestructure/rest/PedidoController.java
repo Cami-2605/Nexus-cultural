@@ -1,4 +1,4 @@
-package com.uniquindio.nexuscultural.infraestructure.web;
+package com.uniquindio.nexuscultural.infraestructure.rest;
 
 import com.uniquindio.nexuscultural.application.dto.request.DevolverProductoRequest;
 import com.uniquindio.nexuscultural.application.dto.request.ProcesarPagoRequest;
