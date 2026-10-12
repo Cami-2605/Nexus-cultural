@@ -25,36 +25,17 @@ public class RegistrarArtesanoUseCase {
                              TrayectoriaCultural trayectoria,
                              UbicacionGeografica ubicacion) {
 
-        // Crear e instanciar el Value Object Email (su constructor valida la sintaxis)
         Email email = new Email(emailTexto);
 
-        // Validar que el nombre completo no venga nulo o vacío
-        if (nombreCompleto == null || nombreCompleto.trim().isEmpty()) {
-            throw new ReglaDominioException("El nombre completo del artesano es obligatorio.");
-        }
-
-        // Regla de dominio: Verificar que no exista otro artesano registrado con el mismo correo
-        if (artesanoRepository.buscarPorEmail(email).isPresent()) {
+        // Verificación de existencia sin bloque 'if', delegada a la API funcional de Optional
+        artesanoRepository.buscarPorEmail(email).ifPresent(a -> {
             throw new ReglaDominioException("Ya existe un artesano registrado con el correo: " + emailTexto);
-        }
+        });
 
-        // Regla de dominio: Verificar que la trayectoria cultural no sea nula
-        if (trayectoria == null) {
-            throw new ReglaDominioException("La trayectoria cultural del artesano es obligatoria.");
-        }
+        // La entidad valida sus propios atributos obligatorios y se instancia
+        Artesano nuevoArtesano = Artesano.registrar(nombreCompleto, email, trayectoria, ubicacion, LocalDateTime.now());
 
-        // Construir la entidad Artesano con sus atributos iniciales
-        Artesano nuevoArtesano = Artesano.builder()
-                .id(UUID.randomUUID())
-                .nombreCompleto(nombreCompleto.trim())
-                .email(email)
-                .fechaRegistro(LocalDateTime.now())
-                .trayectoriaCultural(trayectoria)
-                .ubicacionGeografica(ubicacion)
-                .activo(true)
-                .build();
-
-        // Persistir mediante el repositorio y retornar
+        // El caso de uso solo persiste y retorna
         return artesanoRepository.guardar(nuevoArtesano);
     }
 }

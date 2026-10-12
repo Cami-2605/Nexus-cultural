@@ -13,4 +13,6 @@ public interface CompradorRepository {
     Optional<Comprador> buscarPorId(UUID id);
 
     Optional<Comprador> buscarPorEmail(Email email);
+
+    //void validarEmailUnico(Email email);
 }
