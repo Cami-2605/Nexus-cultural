@@ -8,12 +8,13 @@ import com.uniquindio.nexuscultural.domain.valueobject.TrayectoriaCultural;
 import com.uniquindio.nexuscultural.domain.valueobject.UbicacionGeografica;
 import com.uniquindio.nexuscultural.infraestructure.rest.mapper.ArtesanoMapper;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 // Esta clase maneja peticiones HTTP y devuelve un JSON directamente
 @RestController
-@RequestMapping("/artesanos") // URL base de todos los métodos de esta clase
+@RequestMapping("/api/artesanos") // URL base de todos los métodos de esta clase
 public class ArtesanoController {
 
     private final RegistrarArtesanoUseCase registrarArtesanoUseCase;
@@ -49,6 +50,7 @@ public class ArtesanoController {
         );
 
         // 3. Delegamos la transformación de la Entidad a DTO usando el Mapper
-        return ResponseEntity.ok(artesanoMapper.toResponse(artesanoCreado));
+        // Devuelve un código 201 (Created)
+        return ResponseEntity.status(HttpStatus.CREATED).body(artesanoMapper.toResponse(artesanoCreado));
     }
 }

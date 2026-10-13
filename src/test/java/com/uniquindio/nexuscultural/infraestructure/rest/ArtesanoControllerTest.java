@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(ArtesanoController.class)
+@WebMvcTest(ArtesanoController.class) //Levanta lo necesario para probar este controller
 @Import(ArtesanoMapper.class) // Carga la implementación real de ArtesanoMapper en el contexto
 class ArtesanoControllerTest {
 
@@ -41,6 +41,7 @@ class ArtesanoControllerTest {
     @MockitoBean
     private RegistrarArtesanoUseCase registrarArtesanoUseCase;
 
+    //Aquí se estan llamando los test verificando que si responda
     @Test
     @DisplayName("POST /artesanos debe responder HTTP 200 OK y devolver el JSON del artesano creado")
     void debeRegistrarArtesanoViaHttp() throws Exception {
@@ -69,10 +70,11 @@ class ArtesanoControllerTest {
                 .thenReturn(artesanoSimulado);
 
         // Act & Assert
-        mockMvc.perform(post("/artesanos")
+        mockMvc.perform(post("/api/artesanos")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
+                //.andExpect(status().isOk()) //Se usa para probar el 200
+                .andExpect(status().isCreated()) //Para validar el estado 201
                 .andExpect(jsonPath("$.nombreCompleto").value("Lucía Fernández"))
                 .andExpect(jsonPath("$.email").value("lucia@artesanias.com"))
                 .andExpect(jsonPath("$.activo").value(true));
