@@ -17,6 +17,7 @@ public class ArtesanoRepositoryEnMemoria implements ArtesanoRepository {
     public Artesano guardar(Artesano artesano) {
         artesanos.put(artesano.getId(), artesano);
         return artesano;
+
     }
 
     @Override
@@ -30,4 +31,6 @@ public class ArtesanoRepositoryEnMemoria implements ArtesanoRepository {
                 .filter(a -> a.getEmail().equals(email))
                 .findFirst();
     }
+
+
 }

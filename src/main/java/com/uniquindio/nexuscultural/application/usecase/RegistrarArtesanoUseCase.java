@@ -6,7 +6,9 @@ import com.uniquindio.nexuscultural.domain.repository.ArtesanoRepository;
 import com.uniquindio.nexuscultural.domain.valueobject.Email;
 import com.uniquindio.nexuscultural.domain.valueobject.TrayectoriaCultural;
 import com.uniquindio.nexuscultural.domain.valueobject.UbicacionGeografica;
+
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -20,6 +22,7 @@ public class RegistrarArtesanoUseCase {
         this.artesanoRepository = artesanoRepository;
     }
 
+    @Transactional
     public Artesano ejecutar(String nombreCompleto,
                              String emailTexto,
                              TrayectoriaCultural trayectoria,

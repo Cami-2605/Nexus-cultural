@@ -1,35 +1,73 @@
 package com.uniquindio.nexuscultural.application.usecase;
 
-
-import com.uniquindio.nexuscultural.application.dto.request.ValidarOtpRequest;
-import com.uniquindio.nexuscultural.application.dto.response.MensajeRespuestaResponse;
+import com.uniquindio.nexuscultural.application.dto.response.AuthTokenResponse;
 import com.uniquindio.nexuscultural.domain.exception.ReglaDominioException;
+import com.uniquindio.nexuscultural.domain.repository.AdministradorRepository;
+import com.uniquindio.nexuscultural.domain.repository.ArtesanoRepository;
+import com.uniquindio.nexuscultural.domain.repository.CompradorRepository;
 import com.uniquindio.nexuscultural.domain.repository.CodigoOtpRepository;
 import com.uniquindio.nexuscultural.domain.valueobject.CodigoOtp;
+import com.uniquindio.nexuscultural.domain.valueobject.Email;
+import com.uniquindio.nexuscultural.infraestructure.security.JwtTokenProviderAdapter;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.UUID;
 
 @Service
 public class ValidarOtpUseCase {
 
     private final CodigoOtpRepository otpRepository;
+    private final AdministradorRepository administradorRepository;
+    private final ArtesanoRepository artesanoRepository;
+    private final CompradorRepository compradorRepository;
+    private final JwtTokenProviderAdapter jwtTokenProviderAdapter;
 
-    public ValidarOtpUseCase(CodigoOtpRepository otpRepository) {
+    public ValidarOtpUseCase(CodigoOtpRepository otpRepository,
+                             AdministradorRepository administradorRepository,
+                             ArtesanoRepository artesanoRepository,
+                             CompradorRepository compradorRepository,
+                             JwtTokenProviderAdapter jwtTokenProviderAdapter) {
         this.otpRepository = otpRepository;
+        this.administradorRepository = administradorRepository;
+        this.artesanoRepository = artesanoRepository;
+        this.compradorRepository = compradorRepository;
+        this.jwtTokenProviderAdapter = jwtTokenProviderAdapter;
     }
 
-    public MensajeRespuestaResponse ejecutar(ValidarOtpRequest request) {
-        // Arrange: Recuperar estado actual desde el repositorio
-        CodigoOtp otp = otpRepository.buscarUltimoPorTelefono(request.telefono())
-                .orElseThrow(() -> new ReglaDominioException("No existe un código OTP solicitado para este número."));
+    @Transactional
+    public AuthTokenResponse ejecutar(String emailTexto, String codigoIngresado) {
+        CodigoOtp otpActual = otpRepository.buscarUltimoPorEmail(emailTexto)
+                .orElseThrow(() -> new ReglaDominioException("No se encontró ningún código OTP para el correo especificado."));
 
-        // Act: El dominio evalúa si es válido
-        if (!otp.esValido(request.codigo())) {
-            throw new ReglaDominioException("El código OTP es incorrecto o ha expirado.");
+        if (!otpActual.esValido(codigoIngresado)) {
+            throw new ReglaDominioException("El código OTP es incorrecto, ya fue utilizado o ha expirado.");
         }
 
-        // Assert/Save: Se actualiza el estado inmutablemente a USADO
-        otpRepository.actualizar(request.telefono(), otp.marcarComoUsado());
+        // Marcar OTP como usado
+        CodigoOtp otpUsado = otpActual.marcarComoUsado();
+        otpRepository.actualizar(emailTexto, otpUsado);
 
-        return new MensajeRespuestaResponse("Verificación exitosa.", true);
+        // Convertir String a Value Object Email para consultar los repositorios
+        Email emailVO = new Email(emailTexto);
+
+        UUID usuarioId;
+        String rol;
+
+        if (administradorRepository.buscarPorEmail(emailVO).isPresent()) {
+            usuarioId = administradorRepository.buscarPorEmail(emailVO).get().getId();
+            rol = "ADMINISTRADOR";
+        } else if (artesanoRepository.buscarPorEmail(emailVO).isPresent()) {
+            usuarioId = artesanoRepository.buscarPorEmail(emailVO).get().getId();
+            rol = "ARTESANO";
+        } else if (compradorRepository.buscarPorEmail(emailVO).isPresent()) {
+            usuarioId = compradorRepository.buscarPorEmail(emailVO).get().getId();
+            rol = "COMPRADOR";
+        } else {
+            throw new ReglaDominioException("El correo no está asociado a ningún usuario registrado.");
+        }
+
+        // Generar y retornar el token JWT
+        return jwtTokenProviderAdapter.generarToken(usuarioId, emailTexto, rol);
     }
 }

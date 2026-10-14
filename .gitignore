@@ -5,6 +5,10 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
+### Archivos de variables de entorno y secretos ###
+.env
+*.env.local
+
 ### STS ###
 .apt_generated
 .classpath
