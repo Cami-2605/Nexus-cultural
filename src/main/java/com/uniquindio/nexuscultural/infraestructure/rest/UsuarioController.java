@@ -2,6 +2,7 @@ package com.uniquindio.nexuscultural.infraestructure.rest;
 
 import com.uniquindio.nexuscultural.application.dto.request.SolicitarOtpRequest;
 import com.uniquindio.nexuscultural.application.dto.request.ValidarOtpRequest;
+import com.uniquindio.nexuscultural.application.dto.response.AuthTokenResponse;
 import com.uniquindio.nexuscultural.application.dto.response.MensajeRespuestaResponse;
 import com.uniquindio.nexuscultural.application.usecase.SolicitarOtpUseCase;
 import com.uniquindio.nexuscultural.application.usecase.ValidarOtpUseCase;
@@ -28,8 +29,9 @@ public class UsuarioController {
     }
 
     @PostMapping("/verificar")
-    public ResponseEntity<MensajeRespuestaResponse> validarCodigoOTP(@Valid @RequestBody ValidarOtpRequest request) {
-        MensajeRespuestaResponse respuesta = validarOtpUseCase.ejecutar(request);
-        return ResponseEntity.ok(respuesta);
+    public ResponseEntity<AuthTokenResponse> validarCodigoOTP(@Valid @RequestBody ValidarOtpRequest request) {
+        AuthTokenResponse tokenResponse = validarOtpUseCase.ejecutar(request.email(), request.codigo());
+        return ResponseEntity.ok(tokenResponse);
     }
+
 }
