@@ -9,6 +9,9 @@ build/
 .env
 *.env.local
 
+## key servicio email notificaciones ###
+firebase-key-nexus-cultural-sevicio-correo.json
+
 ### STS ###
 .apt_generated
 .classpath

@@ -54,6 +54,9 @@ dependencies {
 
 	// Carga de variables de entorno desde archivo .env
 	implementation 'me.paulschwarz:spring-dotenv:4.0.0'
+
+	// SDK Admin de Firebase
+	implementation 'com.google.firebase:firebase-admin:9.3.0'
 }
 
 tasks.named('test') {
