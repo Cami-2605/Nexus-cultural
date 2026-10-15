@@ -28,12 +28,12 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Endpoints públicos (Registro y Autenticación OTP)
                         .requestMatchers("/api/usuarios/solicitar", "/api/usuarios/verificar").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/administradores", "/artesanos", "/compradores").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/administradores", "/api/artesanos", "/api/compradores").permitAll()
 
                         // Endpoints protegidos por rol
-                        .requestMatchers("/administradores/**").hasRole("ADMINISTRADOR")
-                        .requestMatchers("/artesanos/**").hasAnyRole("ARTESANO", "ADMINISTRADOR")
-                        .requestMatchers("/compradores/**").hasAnyRole("COMPRADOR", "ADMINISTRADOR")
+                        .requestMatchers("/api/administradores/**").hasRole("ADMINISTRADOR")
+                        .requestMatchers("/api/artesanos/**").hasAnyRole("ARTESANO", "ADMINISTRADOR")
+                        .requestMatchers("/api/compradores/**").hasAnyRole("COMPRADOR", "ADMINISTRADOR")
 
                         // Cualquier otra solicitud requiere autenticación
                         .anyRequest().authenticated()
