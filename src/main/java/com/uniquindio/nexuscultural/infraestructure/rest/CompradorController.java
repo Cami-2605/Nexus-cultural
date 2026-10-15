@@ -7,6 +7,7 @@ import com.uniquindio.nexuscultural.domain.entity.Comprador;
 import com.uniquindio.nexuscultural.domain.valueobject.UbicacionGeografica;
 import com.uniquindio.nexuscultural.infraestructure.rest.mapper.CompradorMapper;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,7 +15,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/compradores")
+@RequestMapping("/api/compradores")
 public class CompradorController {
 
     private final RegistrarCompradorUseCase registrarCompradorUseCase;
@@ -52,7 +53,8 @@ public class CompradorController {
                 direccion
         );
 
-        return ResponseEntity.ok(compradorMapper.toResponse(comprador));
+        //return ResponseEntity.ok(compradorMapper.toResponse(comprador)); //devuelve 200
+        return ResponseEntity.status(HttpStatus.CREATED).body(compradorMapper.toResponse(comprador));
     }
 
     @GetMapping("/{id}")
