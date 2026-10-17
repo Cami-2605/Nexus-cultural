@@ -2,7 +2,9 @@ package com.uniquindio.nexuscultural.application.usecase;
 
 import com.uniquindio.nexuscultural.domain.entity.Artesano;
 import com.uniquindio.nexuscultural.domain.exception.ReglaDominioException;
+import com.uniquindio.nexuscultural.domain.repository.AdministradorRepository;
 import com.uniquindio.nexuscultural.domain.repository.ArtesanoRepository;
+import com.uniquindio.nexuscultural.domain.repository.CompradorRepository;
 import com.uniquindio.nexuscultural.domain.valueobject.Email;
 import com.uniquindio.nexuscultural.domain.valueobject.TrayectoriaCultural;
 import com.uniquindio.nexuscultural.domain.valueobject.UbicacionGeografica;
@@ -17,9 +19,15 @@ import java.util.UUID;
 public class RegistrarArtesanoUseCase {
 
     private final ArtesanoRepository artesanoRepository;
+    private final CompradorRepository compradorRepository;
+    private final AdministradorRepository administradorRepository;
 
-    public RegistrarArtesanoUseCase(ArtesanoRepository artesanoRepository) {
+    public RegistrarArtesanoUseCase(ArtesanoRepository artesanoRepository,
+                                    CompradorRepository compradorRepository,
+                                    AdministradorRepository administradorRepository) {
         this.artesanoRepository = artesanoRepository;
+        this.compradorRepository = compradorRepository;
+        this.administradorRepository = administradorRepository;
     }
 
     @Transactional
@@ -30,9 +38,19 @@ public class RegistrarArtesanoUseCase {
 
         Email email = new Email(emailTexto);
 
-        // Verificación de existencia sin bloque 'if', delegada a la API funcional de Optional
+         // 1. Validar si ya existe como Artesano
         artesanoRepository.buscarPorEmail(email).ifPresent(a -> {
             throw new ReglaDominioException("Ya existe un artesano registrado con el correo: " + emailTexto);
+        });
+
+        // 2. Validar si ya existe como Comprador
+        compradorRepository.buscarPorEmail(email).ifPresent(c -> {
+            throw new ReglaDominioException("Ya existe un comprador registrado con el correo: " + emailTexto);
+        });
+
+        // 3. Validar si ya existe como Administrador
+        administradorRepository.buscarPorEmail(email).ifPresent(admin -> {
+            throw new ReglaDominioException("Ya existe un administrador registrado con el correo: " + emailTexto);
         });
 
         // La entidad valida sus propios atributos obligatorios y se instancia

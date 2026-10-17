@@ -11,6 +11,7 @@ build/
 
 ## key servicio email notificaciones ###
 firebase-key-nexus-cultural-sevicio-correo.json
+src/main/resources/firebase-key-nexus-cultural-sevicio-correo.json
 
 ### STS ###
 .apt_generated

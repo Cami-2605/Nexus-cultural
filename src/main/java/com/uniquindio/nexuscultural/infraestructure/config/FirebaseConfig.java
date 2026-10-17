@@ -5,31 +5,35 @@ import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.Resource;
 
 import jakarta.annotation.PostConstruct;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 @Configuration
 public class FirebaseConfig {
 
-    @Value("${firebase.config.path}")
-    private String configPath;
+    // Inyecta el archivo desde el classpath definido en application.properties
+    @Value("${firebase.config.path:classpath:firebase-key-nexus-cultural-sevicio-correo.json}")
+    private Resource firebaseResource;
 
     @PostConstruct
     public void inicializarFirebase() {
         try {
-            FileInputStream serviceAccount = new FileInputStream(configPath);
-
-            FirebaseOptions options = FirebaseOptions.builder()
-                    .setCredentials(GoogleCredentials.fromStream(serviceAccount))
-                    .build();
-
             if (FirebaseApp.getApps().isEmpty()) {
-                FirebaseApp.initializeApp(options);
+                // Lee el flujo directamente desde los recursos del proyecto/JAR
+                try (InputStream serviceAccount = firebaseResource.getInputStream()) {
+
+                    FirebaseOptions options = FirebaseOptions.builder()
+                            .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+                            .build();
+
+                    FirebaseApp.initializeApp(options);
+                }
             }
         } catch (IOException e) {
-            throw new RuntimeException("Error al inicializar Firebase Admin SDK: " + e.getMessage(), e);
+            throw new RuntimeException("Error al inicializar Firebase Admin SDK desde resources: " + e.getMessage(), e);
         }
     }
 }
