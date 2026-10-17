@@ -72,10 +72,12 @@
 
 | Operación del dominio | Método HTTP | Endpoint |
 | --- | --- | --- |
-| listarCatalogoPublico(...) | GET | /catalogo |
-| buscarArticulos(query) | GET | /catalogo/buscar |
-| listarCategorias() | GET | /catalogo/categorias |
-| listarRegiones() | GET | /catalogo/regiones |
+| listarCatalogo() | GET | /api/catalogo |
+| buscarPorTitulo(query) | GET | /api/catalogo/buscar?query= |
+| listarCategorias() | GET | /api/catalogo/categorias |
+| buscarPorGrupo(grupo) | GET | /api/catalogo?grupo= |
+| listarPorArtesano(artesanoId) | GET | /api/catalogo/artesano/{artesanoId} |
+| obtenerArticulo(id) | GET | /api/articulos/{id} |
 
 ---
 
@@ -83,14 +85,32 @@
 
 | Operación del dominio | Método HTTP | Endpoint |
 | --- | --- | --- |
-| consultarCarrito(compradorId) | GET | /compradores/{compradorId}/carrito |
-| agregarItemCarrito(...) | POST | /compradores/{compradorId}/carrito/items |
-| actualizarCantidadItem(...) | PUT | /compradores/{compradorId}/carrito/items/{itemId} |
-| eliminarItemCarrito(...) | DELETE | /compradores/{compradorId}/carrito/items/{itemId} |
-| vaciarCarrito(...) | DELETE | /compradores/{compradorId}/carrito |
+| agregarItem(compradorId, request) | POST | /api/compradores/{compradorId}/carrito/items |
+| obtenerCarrito(compradorId) | GET | /api/compradores/{compradorId}/carrito |
+| actualizarCantidad(compradorId, itemId, cantidad) | PUT | /api/compradores/{compradorId}/carrito/items/{itemId} |
+| eliminarItem(compradorId, itemId) | DELETE | /api/compradores/{compradorId}/carrito/items/{itemId} |
+| vaciarCarrito(compradorId) | DELETE | /api/compradores/{compradorId}/carrito |
 
+---
 
-### Mapeo Dominio -> API - Reseñas y Calificaciones (Reseñas)
+### Mapeo Dominio -> API - Promociones y Descuentos
+
+| Operación del dominio | Método HTTP | Endpoint |
+| --- | --- | --- |
+| aplicarDescuento(articuloId, request) | POST | /api/articulos/{id}/descuento |
+| removerDescuento(articuloId, artesanoId) | DELETE | /api/articulos/{id}/descuento |
+
+---
+
+### Mapeo Dominio -> API - Gamificación / Logros
+
+| Operación del dominio | Método HTTP | Endpoint |
+| --- | --- | --- |
+| consultarLogros(artesanoId) | GET | /api/artesanos/{id}/logros |
+
+---
+
+### Mapeo Dominio -> API - Reseñas y Calificaciones
 
 | Operación del dominio | Método HTTP | Endpoint |
 | --- | --- | --- |

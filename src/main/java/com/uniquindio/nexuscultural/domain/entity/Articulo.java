@@ -1,6 +1,7 @@
 package com.uniquindio.nexuscultural.domain.entity;
 
 import com.uniquindio.nexuscultural.domain.exception.ReglaDominioException;
+import com.uniquindio.nexuscultural.domain.valueobject.Descuento;
 import com.uniquindio.nexuscultural.domain.valueobject.EstadoArticulo;
 import com.uniquindio.nexuscultural.domain.valueobject.EstadoDevolucion;
 import com.uniquindio.nexuscultural.domain.valueobject.Grupo;
@@ -28,6 +29,7 @@ public class Articulo {
     private int stock;
     private EstadoArticulo estado;
     private Precio precio;
+    private Descuento descuento;
 
     private Articulo(UUID id, UUID artesanoId, String titulo, String descripcion,
                      int stock, EstadoArticulo estado, Grupo grupo, List<String> imagenes,
@@ -191,6 +193,31 @@ public class Articulo {
         }
         this.descripcion = nuevaDescripcion;
     }
+
+    /** Aplica un descuento al artículo. El artículo no debe estar eliminado. */
+    public void aplicarDescuento(Descuento descuento) {
+        if (estado == EstadoArticulo.ELIMINADO) {
+            throw new ReglaDominioException("No se puede aplicar descuento a un artículo eliminado.");
+        }
+        if (descuento == null) throw new ReglaDominioException("El descuento no puede ser nulo.");
+        this.descuento = descuento;
+    }
+
+    /** Remueve el descuento activo del artículo. */
+    public void removerDescuento() {
+        this.descuento = null;
+    }
+
+    /**
+     * Retorna el precio con descuento aplicado si existe uno activo,
+     * o el precio base en caso contrario.
+     */
+    public Precio getPrecioConDescuento() {
+        if (descuento == null) return precio;
+        return descuento.aplicar(precio);
+    }
+
+    public Descuento getDescuento() { return descuento; }
 
     @Override
     public boolean equals(Object o) {

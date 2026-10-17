@@ -2,8 +2,11 @@ package com.uniquindio.nexuscultural.infraestructure.rest;
 
 import com.uniquindio.nexuscultural.application.dto.request.RegistrarArtesanoRequest;
 import com.uniquindio.nexuscultural.application.dto.response.ArtesanoResponse;
+import com.uniquindio.nexuscultural.application.dto.response.LogroResponse;
 import com.uniquindio.nexuscultural.application.usecase.RegistrarArtesanoUseCase;
 import com.uniquindio.nexuscultural.domain.entity.Artesano;
+import com.uniquindio.nexuscultural.domain.exception.ReglaDominioException;
+import com.uniquindio.nexuscultural.domain.repository.ArtesanoRepository;
 import com.uniquindio.nexuscultural.domain.valueobject.TrayectoriaCultural;
 import com.uniquindio.nexuscultural.domain.valueobject.UbicacionGeografica;
 import com.uniquindio.nexuscultural.infraestructure.rest.mapper.ArtesanoMapper;
@@ -18,12 +21,15 @@ import org.springframework.web.bind.annotation.*;
 public class ArtesanoController {
 
     private final RegistrarArtesanoUseCase registrarArtesanoUseCase;
-    private final ArtesanoMapper artesanoMapper; // Inyección del Mapper
+    private final ArtesanoMapper artesanoMapper;
+    private final ArtesanoRepository artesanoRepository;
 
     public ArtesanoController(RegistrarArtesanoUseCase registrarArtesanoUseCase,
-                              ArtesanoMapper artesanoMapper) {
+                              ArtesanoMapper artesanoMapper,
+                              ArtesanoRepository artesanoRepository) {
         this.registrarArtesanoUseCase = registrarArtesanoUseCase;
         this.artesanoMapper = artesanoMapper;
+        this.artesanoRepository = artesanoRepository;
     }
 
     @PostMapping
@@ -52,5 +58,16 @@ public class ArtesanoController {
         // 3. Delegamos la transformación de la Entidad a DTO usando el Mapper
         // Devuelve un código 201 (Created)
         return ResponseEntity.status(HttpStatus.CREATED).body(artesanoMapper.toResponse(artesanoCreado));
+    }
+
+    /** GET /api/artesanos/{id}/logros — Retorna los logros del artesano. */
+    @GetMapping("/{id}/logros")
+    public ResponseEntity<java.util.List<LogroResponse>> consultarLogros(@PathVariable java.util.UUID id) {
+        Artesano artesano = artesanoRepository.buscarPorId(id)
+                .orElseThrow(() -> new ReglaDominioException("Artesano no encontrado."));
+        java.util.List<LogroResponse> logros = artesano.getLogros().stream()
+                .map(l -> new LogroResponse(l.getNombre(), l.getDescripcion()))
+                .toList();
+        return ResponseEntity.ok(logros);
     }
 }
