@@ -45,8 +45,11 @@
 | Operación del dominio | Método HTTP | Endpoint |
 | --- | --- | --- |
 | Administrador.registrar(...) | POST | /administradores |
+| Listar administradores | GET | /administradores |
 | Consultar perfil del administrador | GET | /administradores/{id} |
+| actualizarPerfilAdministrador(...) | PUT | /administradores/{id} |
 | cambiarNivelAcceso(...) | PUT | /administradores/{id}/nivel_acceso |
+| eliminarAdministrador(...) | DELETE | /administradores/{id} |
 
 ---
 

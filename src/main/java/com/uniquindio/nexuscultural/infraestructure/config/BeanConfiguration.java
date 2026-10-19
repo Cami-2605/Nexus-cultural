@@ -11,7 +11,6 @@ import com.uniquindio.nexuscultural.infraestructure.persistence.ArticuloReposito
 import com.uniquindio.nexuscultural.infraestructure.persistence.ArtesanoRepositoryEnMemoria;
 import com.uniquindio.nexuscultural.infraestructure.persistence.CarritoRepositoryEnMemoria;
 import com.uniquindio.nexuscultural.infraestructure.persistence.CompradorRepositoryEnMemoria;
-import com.uniquindio.nexuscultural.infraestructure.persistence.PedidoRepositoryEnMemoria;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -43,10 +42,6 @@ public class BeanConfiguration {
         return new ArticuloRepositoryEnMemoria();
     }
 
-    @Bean
-    public PedidoRepository pedidoRepository() {
-        return new PedidoRepositoryEnMemoria();
-    }
 
     @Bean
     public CarritoRepository carritoRepository() {
