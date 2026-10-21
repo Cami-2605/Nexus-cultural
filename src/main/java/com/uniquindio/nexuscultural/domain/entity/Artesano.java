@@ -2,6 +2,7 @@ package com.uniquindio.nexuscultural.domain.entity;
 
 import com.uniquindio.nexuscultural.domain.exception.ReglaDominioException;
 import com.uniquindio.nexuscultural.domain.valueobject.Email;
+import com.uniquindio.nexuscultural.domain.valueobject.Logro;
 import com.uniquindio.nexuscultural.domain.valueobject.RolUsuario;
 import com.uniquindio.nexuscultural.domain.valueobject.TrayectoriaCultural;
 import com.uniquindio.nexuscultural.domain.valueobject.UbicacionGeografica;
@@ -9,6 +10,9 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -17,6 +21,7 @@ public class Artesano extends Usuario {
     private TrayectoriaCultural trayectoriaCultural;
     private UbicacionGeografica ubicacionGeografica;
     private boolean activo;
+    private final List<Logro> logros = new ArrayList<>();
 
     @Builder
     private Artesano(UUID id,
@@ -80,5 +85,20 @@ public class Artesano extends Usuario {
 
     public void activarPerfil() {
         this.activo = true;
+    }
+
+    /**
+     * Otorga un logro al artesano. Si ya lo tiene, no lo agrega de nuevo (idempotente).
+     */
+    public void otorgarLogro(Logro logro) {
+        if (logro == null) throw new ReglaDominioException("El logro no puede ser nulo.");
+        if (!logros.contains(logro)) {
+            logros.add(logro);
+        }
+    }
+
+    /** Retorna la lista de logros del artesano (inmutable). */
+    public List<Logro> getLogros() {
+        return Collections.unmodifiableList(logros);
     }
 }

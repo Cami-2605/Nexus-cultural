@@ -1,6 +1,7 @@
 package com.uniquindio.nexuscultural.infraestructure.rest;
 
 import com.uniquindio.nexuscultural.application.dto.request.ActualizarInventarioRequest;
+import com.uniquindio.nexuscultural.application.dto.request.AplicarDescuentoRequest;
 import com.uniquindio.nexuscultural.application.dto.request.CrearArticuloRequest;
 import com.uniquindio.nexuscultural.application.dto.request.ReponerStockRequest;
 import com.uniquindio.nexuscultural.application.dto.response.ArticuloDetalleResponse;
@@ -70,6 +71,24 @@ import java.util.UUID;
                     @RequestParam UUID artesanoId) {
 
                 Articulo articulo = articuloService.reactivarArticulo(id, artesanoId);
+                return ResponseEntity.ok(articuloMapper.toResponse(articulo));
+            }
+
+            /** POST /api/articulos/{id}/descuento — Aplica un descuento al artículo */
+            @PostMapping("/{id}/descuento")
+            public ResponseEntity<ArticuloDetalleResponse> aplicarDescuento(
+                    @PathVariable UUID id,
+                    @Valid @RequestBody AplicarDescuentoRequest request) {
+                Articulo articulo = articuloService.aplicarDescuento(id, request);
+                return ResponseEntity.ok(articuloMapper.toResponse(articulo));
+            }
+
+            /** DELETE /api/articulos/{id}/descuento — Remueve el descuento del artículo */
+            @DeleteMapping("/{id}/descuento")
+            public ResponseEntity<ArticuloDetalleResponse> removerDescuento(
+                    @PathVariable UUID id,
+                    @RequestParam UUID artesanoId) {
+                Articulo articulo = articuloService.removerDescuento(id, artesanoId);
                 return ResponseEntity.ok(articuloMapper.toResponse(articulo));
             }
         }

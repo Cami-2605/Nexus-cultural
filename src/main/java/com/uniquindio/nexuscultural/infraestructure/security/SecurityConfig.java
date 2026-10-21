@@ -26,16 +26,29 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // Endpoints públicos (Registro y Autenticación OTP)
+                        // 1. Endpoints públicos (Registro y Autenticación OTP)
                         .requestMatchers("/api/usuarios/solicitar", "/api/usuarios/verificar").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/administradores", "/artesanos", "/compradores").permitAll()
+                        .requestMatchers("/api/usuarios/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/administradores", "/api/artesanos", "/api/compradores").permitAll()
 
-                        // Endpoints protegidos por rol
-                        .requestMatchers("/administradores/**").hasRole("ADMINISTRADOR")
-                        .requestMatchers("/artesanos/**").hasAnyRole("ARTESANO", "ADMINISTRADOR")
-                        .requestMatchers("/compradores/**").hasAnyRole("COMPRADOR", "ADMINISTRADOR")
+                        // 2. Catálogo público (para que compradores y visitantes vean las obras)
+                        .requestMatchers(HttpMethod.GET, "/api/catalogo/**", "/api/articulos/**").permitAll()
 
-                        // Cualquier otra solicitud requiere autenticación
+                        // 3. Almacenamiento en AWS S3 (Presigned URLs)
+                        // Permite que artesanos autenticados soliciten la URL de subida
+                        .requestMatchers("/api/v1/storage/**").permitAll()
+
+                        // 4. Publicación y gestión de artículos
+                        .requestMatchers(HttpMethod.POST, "/api/articulos/**").hasAnyRole("ARTESANO", "ADMINISTRADOR")
+                        .requestMatchers(HttpMethod.PUT, "/api/articulos/**").hasAnyRole("ARTESANO", "ADMINISTRADOR")
+                        .requestMatchers(HttpMethod.DELETE, "/api/articulos/**").hasAnyRole("ARTESANO", "ADMINISTRADOR")
+
+                        // 5. Endpoints protegidos por rol
+                        .requestMatchers("/api/administradores/**").hasRole("ADMINISTRADOR")
+                        .requestMatchers("/api/artesanos/**").hasAnyRole("ARTESANO", "ADMINISTRADOR")
+                        .requestMatchers("/api/compradores/**").hasAnyRole("COMPRADOR", "ADMINISTRADOR")
+
+                        // 6. Cualquier otra solicitud requiere autenticación
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

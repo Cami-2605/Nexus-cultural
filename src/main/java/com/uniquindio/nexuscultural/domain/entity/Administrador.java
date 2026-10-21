@@ -27,4 +27,13 @@ public class Administrador extends Usuario {
         }
         this.nivelAcceso = nuevoNivel;
     }
+
+    public void actualizarDatos(String nuevoNombre, NivelAcceso nuevoNivel) {
+        if (nuevoNombre != null && !nuevoNombre.trim().isEmpty()) {
+            this.nombreCompleto = nuevoNombre.trim();
+        }
+        if (nuevoNivel != null) {
+            this.nivelAcceso = nuevoNivel;
+        }
+    }
 }

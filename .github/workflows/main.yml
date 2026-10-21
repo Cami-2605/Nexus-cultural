@@ -1,0 +1,87 @@
+name: CI/CD — Nexus Cultural Backend
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+# Cancelar ejecuciones anteriores en progreso del mismo PR/branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+
+  # ── 1. COMPILACIÓN Y PRUEBAS UNITARIAS ───────────────────────────────────
+  build-and-test:
+    name: "🔨 Build & Test (Java/Gradle)"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v4
+
+      - name: Configurar Java JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Dar permisos de ejecución a Gradle Wrapper
+        run: chmod +x gradlew
+
+      - name: Verificar calidad de código y compilación (Lint / Check)
+        run: ./gradlew check --no-daemon
+
+      - name: Ejecutar Pruebas Unitarias
+        run: ./gradlew test --no-daemon
+
+      - name: Verificar ausencia de secretos hardcodeados
+        # Escanea archivos .java y .properties en busca de patrones sensibles
+        run: |
+          python3 - <<'EOF'
+          import sys, re, pathlib
+          PATRONES = [
+              r'password\s*=\s*["\'][^"\']+["\']',
+              r'secret\s*=\s*["\'][^"\']+["\']',
+              r'api_key\s*=\s*["\'][^"\']+["\']',
+              r'private_key\s*=\s*["\'][^"\']+["\']',
+          ]
+          archivos = list(pathlib.Path("src").rglob("*"))
+          hallazgos = []
+          for f in archivos:
+              if f.is_file() and f.suffix in ['.java', '.properties', '.yml', '.yaml']:
+                  try:
+                      texto = f.read_text(encoding="utf-8")
+                      for pat in PATRONES:
+                          if re.search(pat, texto, re.IGNORECASE):
+                              hallazgos.append(f"{f}: patrón {pat!r}")
+                  except Exception:
+                      pass
+          if hallazgos:
+              print("❌ Secretos hardcodeados detectados en el código:")
+              for h in hallazgos:
+                  print(f"  {h}")
+              sys.exit(1)
+          print("✅ Sin secretos hardcodeados detectados")
+          EOF
+
+      # =========================================================================
+      # DESCOMENTAR LAS SIGUIENTES LÍNEAS PARA EMPAQUETAR EL .JAR Y GUARDAR EL ARTIFACT
+      # =========================================================================
+      # - name: Generar ejecutable (.jar)
+      #   run: ./gradlew bootJar --no-daemon
+      #
+      # - name: Subir Artifact (.jar)
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: nexuscultural-backend-jar
+      #     path: build/libs/*.jar
+      #     retention-days: 5
+      # =========================================================================

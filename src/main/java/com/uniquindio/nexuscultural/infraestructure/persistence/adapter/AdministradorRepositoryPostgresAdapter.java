@@ -39,6 +39,17 @@ public class AdministradorRepositoryPostgresAdapter implements AdministradorRepo
         return springDataRepository.findByEmail(email.valor()).map(this::toDomain);
     }
 
+    @Override
+    public java.util.List<Administrador> listarTodos() {
+        return springDataRepository.findAll().stream().map(this::toDomain).toList();
+    }
+
+    @Override
+    public void eliminar(UUID id) {
+        springDataRepository.deleteById(id);
+    }
+
+
     private AdministradorEntity toEntity(Administrador admin) {
         AdministradorEntity entity = new AdministradorEntity();
         entity.setRol(RolUsuario.ADMIN);
