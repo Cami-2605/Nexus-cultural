@@ -26,9 +26,9 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // 1. Endpoints públicos (Registro y Autenticación OTP)
+                        // 1. Endpoints públicos (Registro, Autenticación OTP y Versión de App)
                         .requestMatchers("/api/usuarios/solicitar", "/api/usuarios/verificar").permitAll()
-                        .requestMatchers("/api/usuarios/**").permitAll()
+                        .requestMatchers("/api/usuarios/**", "/api/app-version", "/api/version").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/administradores", "/api/artesanos", "/api/compradores").permitAll()
 
                         // 2. Catálogo público (para que compradores y visitantes vean las obras)
@@ -44,7 +44,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/articulos/**").hasAnyRole("ARTESANO", "ADMINISTRADOR")
 
                         // 5. Endpoints protegidos por rol
-                        .requestMatchers("/api/administradores/**").hasRole("ADMINISTRADOR")
+                        .requestMatchers("/api/administradores", "/api/administradores/**").hasRole("ADMINISTRADOR")
                         .requestMatchers("/api/artesanos/**").hasAnyRole("ARTESANO", "ADMINISTRADOR")
                         .requestMatchers("/api/compradores/**").hasAnyRole("COMPRADOR", "ADMINISTRADOR")
 

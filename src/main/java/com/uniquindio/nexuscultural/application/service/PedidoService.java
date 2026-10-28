@@ -11,6 +11,7 @@ import com.uniquindio.nexuscultural.domain.repository.PedidoRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -100,4 +101,30 @@ public class PedidoService {
         pedidoRepository.guardar(pedido);
         return pedido;
     }
+
+    public List<Pedido> listarPorComprador(UUID compradorId) {
+        return pedidoRepository.buscarPorCompradorId(compradorId);
+    }
+
+    public List<Pedido> listarPorArtesano(UUID artesanoId) {
+        return pedidoRepository.buscarPorArtesanoId(artesanoId);
+    }
+
+    public Pedido obtenerPorId(UUID pedidoId) {
+        return pedidoRepository.obtenerPorId(pedidoId)
+                .orElseThrow(() -> new ReglaDominioException("Pedido no encontrado."));
+    }
+
+    public Pedido avanzarEstado(UUID pedidoId) {
+        Pedido pedido = obtenerPorId(pedidoId);
+        switch (pedido.getEstado()) {
+            case PENDIENTE -> pedido.confirmar();
+            case CONFIRMADO -> pedido.enviar();
+            case EN_CAMINO -> pedido.marcarEntregado(LocalDateTime.now());
+            default -> {}
+        }
+        pedidoRepository.guardar(pedido);
+        return pedido;
+    }
 }
+

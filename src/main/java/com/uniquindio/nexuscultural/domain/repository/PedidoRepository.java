@@ -10,4 +10,5 @@ public interface PedidoRepository {
     Optional<Pedido> obtenerPorId(UUID id);
     void guardar(Pedido pedido);
     List<Pedido> buscarPorCompradorId(UUID compradorId);
+    List<Pedido> buscarPorArtesanoId(UUID artesanoId);
 }

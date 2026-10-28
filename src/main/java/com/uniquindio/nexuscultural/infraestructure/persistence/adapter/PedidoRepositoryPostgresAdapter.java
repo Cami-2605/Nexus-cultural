@@ -41,4 +41,12 @@ public class PedidoRepositoryPostgresAdapter implements PedidoRepository {
                 .map(pedidoMapper::toDomain)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public List<Pedido> buscarPorArtesanoId(UUID artesanoId) {
+        return springDataPedidoRepository.findByArtesanoId(artesanoId)
+                .stream()
+                .map(pedidoMapper::toDomain)
+                .collect(Collectors.toList());
+    }
 }
