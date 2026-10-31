@@ -164,6 +164,9 @@ public class Articulo {
         if (estado == EstadoArticulo.ELIMINADO) {
             throw new ReglaDominioException("No se puede actualizar el inventario de un artículo eliminado.");
         }
+        if (estado == EstadoArticulo.INACTIVO) {
+            throw new ReglaDominioException("El artículo está inactivo o bloqueado por moderación y no puede ser modificado.");
+        }
         if (nuevaCantidad < 0) {
             throw new ReglaDominioException("La cantidad no puede ser negativa.");
         }
@@ -201,6 +204,9 @@ public class Articulo {
         }
         if (estado == EstadoArticulo.ELIMINADO) {
             throw new ReglaDominioException("No se puede actualizar un artículo eliminado.");
+        }
+        if (estado == EstadoArticulo.INACTIVO) {
+            throw new ReglaDominioException("El artículo está inactivo o bloqueado por moderación y no puede ser modificado.");
         }
         if (nuevoTitulo != null && !nuevoTitulo.isBlank()) {
             this.titulo = nuevoTitulo;

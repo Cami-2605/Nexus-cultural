@@ -92,8 +92,8 @@ public class ArticuloService {
     public Articulo inactivarArticulo(UUID articuloId, UUID artesanoId) {
         Articulo articulo = articuloRepository.buscarPorId(articuloId)
                 .orElseThrow(() -> new ReglaDominioException("Artículo no encontrado."));
-        if (!articulo.getArtesanoId().equals(artesanoId)) {
-            throw new ReglaDominioException("Solo el artesano dueño puede inactivar el artículo.");
+        if (artesanoId != null && !articulo.getArtesanoId().equals(artesanoId)) {
+            throw new ReglaDominioException("Solo el artesano dueño o moderación puede inactivar el artículo.");
         }
         articulo.inactivar();
         return articuloRepository.guardar(articulo);
@@ -102,8 +102,8 @@ public class ArticuloService {
     public Articulo reactivarArticulo(UUID articuloId, UUID artesanoId) {
         Articulo articulo = articuloRepository.buscarPorId(articuloId)
                 .orElseThrow(() -> new ReglaDominioException("Artículo no encontrado."));
-        if (!articulo.getArtesanoId().equals(artesanoId)) {
-            throw new ReglaDominioException("Solo el artesano dueño puede reactivar el artículo.");
+        if (artesanoId != null && !articulo.getArtesanoId().equals(artesanoId)) {
+            throw new ReglaDominioException("Solo el artesano dueño o moderación puede reactivar el artículo.");
         }
         articulo.reactivar();
         return articuloRepository.guardar(articulo);

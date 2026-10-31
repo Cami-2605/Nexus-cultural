@@ -68,11 +68,11 @@ import java.util.UUID;
                 return ResponseEntity.ok(articuloMapper.toResponse(articulo));
             }
 
-            /** PATCH /api/articulos/{id}/inactivar — Desactiva el artículo */
+            /** PATCH /api/articulos/{id}/inactivar — Desactiva el artículo (artesano o moderación) */
             @PatchMapping("/{id}/inactivar")
             public ResponseEntity<ArticuloDetalleResponse> inactivar(
                     @PathVariable UUID id,
-                    @RequestParam UUID artesanoId) {
+                    @RequestParam(required = false) UUID artesanoId) {
 
                 Articulo articulo = articuloService.inactivarArticulo(id, artesanoId);
                 return ResponseEntity.ok(articuloMapper.toResponse(articulo));
@@ -82,7 +82,7 @@ import java.util.UUID;
             @PatchMapping("/{id}/reactivar")
             public ResponseEntity<ArticuloDetalleResponse> reactivar(
                     @PathVariable UUID id,
-                    @RequestParam UUID artesanoId) {
+                    @RequestParam(required = false) UUID artesanoId) {
 
                 Articulo articulo = articuloService.reactivarArticulo(id, artesanoId);
                 return ResponseEntity.ok(articuloMapper.toResponse(articulo));

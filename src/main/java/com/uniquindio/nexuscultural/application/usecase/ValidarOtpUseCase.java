@@ -53,10 +53,14 @@ public class ValidarOtpUseCase {
 
         UUID usuarioId;
         String rol;
+        String nivelAcceso = null;
 
-        if (administradorRepository.buscarPorEmail(emailVO).isPresent()) {
-            usuarioId = administradorRepository.buscarPorEmail(emailVO).get().getId();
+        var adminOpt = administradorRepository.buscarPorEmail(emailVO);
+        if (adminOpt.isPresent()) {
+            var admin = adminOpt.get();
+            usuarioId = admin.getId();
             rol = "ADMINISTRADOR";
+            nivelAcceso = admin.getNivelAcceso() != null ? admin.getNivelAcceso().name() : "SUPER_ADMIN";
         } else if (artesanoRepository.buscarPorEmail(emailVO).isPresent()) {
             usuarioId = artesanoRepository.buscarPorEmail(emailVO).get().getId();
             rol = "ARTESANO";
@@ -68,6 +72,6 @@ public class ValidarOtpUseCase {
         }
 
         // Generar y retornar el token JWT
-        return jwtTokenProviderAdapter.generarToken(usuarioId, emailTexto, rol);
+        return jwtTokenProviderAdapter.generarToken(usuarioId, emailTexto, rol, nivelAcceso);
     }
 }

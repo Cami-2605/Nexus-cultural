@@ -51,4 +51,9 @@ public class CatalogoService {
         return articuloRepository.buscarPorId(id)
                 .orElseThrow(() -> new ReglaDominioException("Artículo no encontrado."));
     }
+
+    /** Retorna todos los artículos (excluyendo eliminados) para moderación y administración. */
+    public List<Articulo> listarTodos() {
+        return articuloRepository.listarTodos();
+    }
 }

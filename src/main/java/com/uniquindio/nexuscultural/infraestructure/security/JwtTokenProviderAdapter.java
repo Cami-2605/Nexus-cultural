@@ -23,18 +23,28 @@ public class JwtTokenProviderAdapter {
     }
 
     public AuthTokenResponse generarToken(UUID usuarioId, String email, String rol) {
+        return generarToken(usuarioId, email, rol, null);
+    }
+
+    public AuthTokenResponse generarToken(UUID usuarioId, String email, String rol, String nivelAcceso) {
         Date ahora = new Date();
         Date expiracion = new Date(ahora.getTime() + expirationInMs);
 
-        String token = Jwts.builder()
+        var builder = Jwts.builder()
                 .subject(email)
                 .claim("id", usuarioId.toString())
-                .claim("rol", rol)
+                .claim("rol", rol);
+
+        if (nivelAcceso != null) {
+            builder.claim("nivelAcceso", nivelAcceso);
+        }
+
+        String token = builder
                 .issuedAt(ahora)
                 .expiration(expiracion)
                 .signWith(key)
                 .compact();
 
-        return new AuthTokenResponse(token, "Bearer", rol, expirationInMs / 1000);
+        return new AuthTokenResponse(token, "Bearer", rol, nivelAcceso, expirationInMs / 1000);
     }
 }

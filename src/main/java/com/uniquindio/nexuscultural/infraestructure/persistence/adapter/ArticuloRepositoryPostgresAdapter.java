@@ -74,4 +74,13 @@ public class ArticuloRepositoryPostgresAdapter implements ArticuloRepository {
                 .map(articuloMapper::toDomain)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public List<Articulo> listarTodos() {
+        return springDataArticuloRepository.findAll()
+                .stream()
+                .map(articuloMapper::toDomain)
+                .filter(a -> a.getEstado() != EstadoArticulo.ELIMINADO)
+                .collect(Collectors.toList());
+    }
 }

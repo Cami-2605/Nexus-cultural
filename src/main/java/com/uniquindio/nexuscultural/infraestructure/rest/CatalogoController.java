@@ -39,6 +39,16 @@ public class CatalogoController {
         return ResponseEntity.ok(respuesta);
     }
 
+    /**
+     * GET /api/catalogo/todos — Lista todos los artículos para moderación y administración
+     */
+    @GetMapping("/catalogo/todos")
+    public ResponseEntity<List<ArticuloDetalleResponse>> listarTodos() {
+        List<ArticuloDetalleResponse> respuesta = catalogoService.listarTodos()
+                .stream().map(articuloMapper::toResponse).toList();
+        return ResponseEntity.ok(respuesta);
+    }
+
     /** GET /api/catalogo/buscar?query= — Búsqueda de artículos por título. */
     @GetMapping("/catalogo/buscar")
     public ResponseEntity<List<ArticuloDetalleResponse>> buscar(
