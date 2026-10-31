@@ -84,9 +84,11 @@ public class PedidoController {
     @PatchMapping("/{id}/entregar")
     public ResponseEntity<PedidoResponse> marcarEntregado(@PathVariable UUID id) {
         Pedido pedido = pedidoService.obtenerPorId(id);
+        int maxIteraciones = 5;
         while (pedido.getEstado() != com.uniquindio.nexuscultural.domain.valueobject.EstadoPedido.ENTREGADO
                 && pedido.getEstado() != com.uniquindio.nexuscultural.domain.valueobject.EstadoPedido.CANCELADO
-                && pedido.getEstado() != com.uniquindio.nexuscultural.domain.valueobject.EstadoPedido.DEVUELTO) {
+                && pedido.getEstado() != com.uniquindio.nexuscultural.domain.valueobject.EstadoPedido.DEVUELTO
+                && maxIteraciones-- > 0) {
             pedido = pedidoService.avanzarEstado(id);
         }
         return ResponseEntity.ok(toResponse(pedido));

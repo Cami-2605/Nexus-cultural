@@ -34,13 +34,27 @@ import java.util.UUID;
                 return ResponseEntity.status(HttpStatus.CREATED).body(articuloMapper.toResponse(articulo));
             }
 
+            /** PUT /api/articulos/{id} — El artesano actualiza los datos generales de su obra */
+            @PutMapping("/{id}")
+            public ResponseEntity<ArticuloDetalleResponse> actualizar(
+                    @PathVariable UUID id,
+                    @Valid @RequestBody CrearArticuloRequest request) {
+
+                Articulo articulo = articuloService.actualizarArticulo(id, request);
+                return ResponseEntity.ok(articuloMapper.toResponse(articulo));
+            }
+
             /** PUT /api/articulos/{id}/inventario — Ajuste exacto de inventario */
             @PutMapping("/{id}/inventario")
             public ResponseEntity<ArticuloDetalleResponse> actualizarInventario(
                     @PathVariable UUID id,
                     @Valid @RequestBody ActualizarInventarioRequest request) {
 
-                Articulo articulo = articuloService.actualizarInventario(request);
+                ActualizarInventarioRequest requestEfectivo = request;
+                if (request.idArticulo() == null || !request.idArticulo().equals(id)) {
+                    requestEfectivo = new ActualizarInventarioRequest(id, request.idArtesano(), request.cantidad(), request.motivo());
+                }
+                Articulo articulo = articuloService.actualizarInventario(requestEfectivo);
                 return ResponseEntity.ok(articuloMapper.toResponse(articulo));
             }
 
@@ -90,5 +104,14 @@ import java.util.UUID;
                     @RequestParam UUID artesanoId) {
                 Articulo articulo = articuloService.removerDescuento(id, artesanoId);
                 return ResponseEntity.ok(articuloMapper.toResponse(articulo));
+            }
+
+            /** DELETE /api/articulos/{id} — El artesano elimina su artículo del catálogo */
+            @DeleteMapping("/{id}")
+            public ResponseEntity<Void> eliminar(
+                    @PathVariable UUID id,
+                    @RequestParam(required = false) UUID artesanoId) {
+                articuloService.eliminarArticulo(id, artesanoId);
+                return ResponseEntity.noContent().build();
             }
         }

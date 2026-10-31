@@ -29,14 +29,14 @@ public class SecurityConfig {
                         // 1. Endpoints públicos (Registro, Autenticación OTP y Versión de App)
                         .requestMatchers("/api/usuarios/solicitar", "/api/usuarios/verificar").permitAll()
                         .requestMatchers("/api/usuarios/**", "/api/app-version", "/api/version").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/administradores", "/api/artesanos", "/api/compradores").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/artesanos", "/api/compradores").permitAll()
 
                         // 2. Catálogo público (para que compradores y visitantes vean las obras)
                         .requestMatchers(HttpMethod.GET, "/api/catalogo/**", "/api/articulos/**").permitAll()
 
                         // 3. Almacenamiento en AWS S3 (Presigned URLs)
-                        // Permite que artesanos autenticados soliciten la URL de subida
-                        .requestMatchers("/api/v1/storage/**").permitAll()
+                        // Permite que artesanos y administradores autenticados soliciten la URL de subida
+                        .requestMatchers("/api/v1/storage/**").hasAnyRole("ARTESANO", "ADMINISTRADOR")
 
                         // 4. Publicación y gestión de artículos
                         .requestMatchers(HttpMethod.POST, "/api/articulos/**").hasAnyRole("ARTESANO", "ADMINISTRADOR")

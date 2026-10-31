@@ -25,12 +25,23 @@ public class CarritoService {
         this.compradorRepository = compradorRepository;
     }
 
-    /** Agrega un artículo al carrito del comprador. Valida que el comprador exista. */
+    /** Agrega un artículo al carrito del comprador. Si ya existe, consolida incrementando la cantidad. */
     public CarritoItem agregarItem(UUID compradorId, AgregarItemCarritoRequest request) {
         compradorRepository.buscarPorId(compradorId)
                 .orElseThrow(() -> new ReglaDominioException("Comprador no encontrado."));
-        CarritoItem item = new CarritoItem(compradorId, request.articuloId(), request.cantidad());
-        return carritoRepository.guardar(item);
+
+        java.util.Optional<CarritoItem> existente = carritoRepository.buscarPorComprador(compradorId).stream()
+                .filter(i -> i.getArticuloId().equals(request.articuloId()))
+                .findFirst();
+
+        if (existente.isPresent()) {
+            CarritoItem item = existente.get();
+            int nuevaCantidad = item.getCantidad() + request.cantidad();
+            return carritoRepository.actualizarCantidad(item.getId(), nuevaCantidad);
+        } else {
+            CarritoItem item = new CarritoItem(compradorId, request.articuloId(), request.cantidad());
+            return carritoRepository.guardar(item);
+        }
     }
 
     /** Retorna todos los ítems del carrito de un comprador. */

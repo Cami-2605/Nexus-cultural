@@ -17,6 +17,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -70,7 +71,14 @@ public class S3PresignedController {
             @RequestParam("extension") String extension,
             @RequestParam("contentType") String contentType) {
 
-        String key = "obras/" + UUID.randomUUID() + "." + extension;
+        if (extension == null || !List.of("jpg", "jpeg", "png", "webp").contains(extension.toLowerCase().trim())) {
+            throw new IllegalArgumentException("Extensión de imagen no permitida. Solo se aceptan jpg, jpeg, png y webp.");
+        }
+        if (contentType == null || !contentType.toLowerCase().startsWith("image/")) {
+            throw new IllegalArgumentException("Tipo de contenido no permitido. Debe ser una imagen válida.");
+        }
+
+        String key = "obras/" + UUID.randomUUID() + "." + extension.toLowerCase().trim();
         Region awsRegion = Region.of(region);
 
         StaticCredentialsProvider credentialsProvider = StaticCredentialsProvider.create(

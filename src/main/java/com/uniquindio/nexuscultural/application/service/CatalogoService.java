@@ -38,10 +38,12 @@ public class CatalogoService {
         return articuloRepository.buscarPorGrupo(grupo);
     }
 
-    /** Retorna todos los artículos de un artesano específico (cualquier estado). */
+    /** Retorna todos los artículos activos de un artesano específico (excluye eliminados). */
     public List<Articulo> listarPorArtesano(UUID artesanoId) {
         if (artesanoId == null) throw new ReglaDominioException("El ID del artesano es obligatorio.");
-        return articuloRepository.listarPorArtesano(artesanoId);
+        return articuloRepository.listarPorArtesano(artesanoId).stream()
+                .filter(a -> a.getEstado() != com.uniquindio.nexuscultural.domain.valueobject.EstadoArticulo.ELIMINADO)
+                .toList();
     }
 
     /** Obtiene el detalle de un artículo por su ID. */

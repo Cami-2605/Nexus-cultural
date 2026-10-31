@@ -9,6 +9,7 @@ import com.uniquindio.nexuscultural.domain.exception.ReglaDominioException;
 import com.uniquindio.nexuscultural.domain.repository.ArticuloRepository;
 import com.uniquindio.nexuscultural.domain.repository.PedidoRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -31,6 +32,7 @@ public class PedidoService {
      * Si el artículo no tiene stock suficiente, Articulo.reducirStock() lanza la excepción
      * antes de persistir nada, dejando el sistema consistente.
      */
+    @Transactional
     public Pedido crearPedido(UUID compradorId, UUID articuloId, int cantidad) {
         Articulo articulo = articuloRepository.buscarPorId(articuloId)
                 .orElseThrow(() -> new ReglaDominioException("Artículo no encontrado."));
@@ -46,6 +48,7 @@ public class PedidoService {
         return pedido;
     }
 
+    @Transactional
     public Pedido procesarPago(ProcesarPagoRequest request) {
         Pedido pedido = pedidoRepository.obtenerPorId(request.idPedido())
                 .orElseThrow(() -> new ReglaDominioException("Pedido no encontrado."));
