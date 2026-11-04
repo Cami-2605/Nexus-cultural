@@ -54,24 +54,30 @@ public class ValidarOtpUseCase {
         UUID usuarioId;
         String rol;
         String nivelAcceso = null;
+        String nombre = null;
 
         var adminOpt = administradorRepository.buscarPorEmail(emailVO);
         if (adminOpt.isPresent()) {
             var admin = adminOpt.get();
             usuarioId = admin.getId();
+            nombre = admin.getNombreCompleto();
             rol = "ADMINISTRADOR";
             nivelAcceso = admin.getNivelAcceso() != null ? admin.getNivelAcceso().name() : "SUPER_ADMIN";
         } else if (artesanoRepository.buscarPorEmail(emailVO).isPresent()) {
-            usuarioId = artesanoRepository.buscarPorEmail(emailVO).get().getId();
+            var artesano = artesanoRepository.buscarPorEmail(emailVO).get();
+            usuarioId = artesano.getId();
+            nombre = artesano.getNombreCompleto();
             rol = "ARTESANO";
         } else if (compradorRepository.buscarPorEmail(emailVO).isPresent()) {
-            usuarioId = compradorRepository.buscarPorEmail(emailVO).get().getId();
+            var comprador = compradorRepository.buscarPorEmail(emailVO).get();
+            usuarioId = comprador.getId();
+            nombre = comprador.getNombreCompleto();
             rol = "COMPRADOR";
         } else {
             throw new ReglaDominioException("El correo no está asociado a ningún usuario registrado.");
         }
 
         // Generar y retornar el token JWT
-        return jwtTokenProviderAdapter.generarToken(usuarioId, emailTexto, rol, nivelAcceso);
+        return jwtTokenProviderAdapter.generarToken(usuarioId, emailTexto, rol, nivelAcceso, nombre);
     }
 }

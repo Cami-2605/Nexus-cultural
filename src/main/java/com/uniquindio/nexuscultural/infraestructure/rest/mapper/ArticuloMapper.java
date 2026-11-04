@@ -6,10 +6,18 @@ import com.uniquindio.nexuscultural.domain.valueobject.EstadoArticulo;
 import com.uniquindio.nexuscultural.domain.valueobject.Grupo;
 import com.uniquindio.nexuscultural.domain.valueobject.Precio;
 import com.uniquindio.nexuscultural.infraestructure.persistence.entity.ArticuloEntity;
+import com.uniquindio.nexuscultural.infraestructure.persistence.repository.SpringDataArtesanoRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class ArticuloMapper {
+
+    private final SpringDataArtesanoRepository artesanoRepository;
+
+    public ArticuloMapper(@Autowired(required = false) SpringDataArtesanoRepository artesanoRepository) {
+        this.artesanoRepository = artesanoRepository;
+    }
 
     // ==========================================
     // Mapeos para Persistencia (PostgreSQL)
@@ -70,6 +78,19 @@ public class ArticuloMapper {
     public ArticuloDetalleResponse toResponse(Articulo domain) {
         if (domain == null) return null;
 
+        String departamento = null;
+        String municipio = null;
+        if (domain.getArtesanoId() != null && artesanoRepository != null) {
+            try {
+                var artesanoOpt = artesanoRepository.findById(domain.getArtesanoId());
+                if (artesanoOpt.isPresent()) {
+                    departamento = artesanoOpt.get().getDepartamento();
+                    municipio = artesanoOpt.get().getMunicipio();
+                }
+            } catch (Exception ignored) {
+            }
+        }
+
         return new ArticuloDetalleResponse(
                 domain.getId() != null ? domain.getId().toString() : null,
                 domain.getArtesanoId() != null ? domain.getArtesanoId().toString() : null,
@@ -85,7 +106,9 @@ public class ArticuloMapper {
                 domain.getFechaPublicacion(),
                 domain.getPrecioConDescuento() != null && domain.getPrecioConDescuento().monto() != null
                         ? domain.getPrecioConDescuento().monto().doubleValue() : null,
-                domain.getDescuento() != null ? domain.getDescuento().porcentaje() : null
+                domain.getDescuento() != null ? domain.getDescuento().porcentaje() : null,
+                departamento,
+                municipio
         );
     }
 }

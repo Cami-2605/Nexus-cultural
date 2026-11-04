@@ -27,6 +27,10 @@ public class JwtTokenProviderAdapter {
     }
 
     public AuthTokenResponse generarToken(UUID usuarioId, String email, String rol, String nivelAcceso) {
+        return generarToken(usuarioId, email, rol, nivelAcceso, null);
+    }
+
+    public AuthTokenResponse generarToken(UUID usuarioId, String email, String rol, String nivelAcceso, String nombre) {
         Date ahora = new Date();
         Date expiracion = new Date(ahora.getTime() + expirationInMs);
 
@@ -39,12 +43,16 @@ public class JwtTokenProviderAdapter {
             builder.claim("nivelAcceso", nivelAcceso);
         }
 
+        if (nombre != null && !nombre.isBlank()) {
+            builder.claim("nombre", nombre);
+        }
+
         String token = builder
                 .issuedAt(ahora)
                 .expiration(expiracion)
                 .signWith(key)
                 .compact();
 
-        return new AuthTokenResponse(token, "Bearer", rol, nivelAcceso, expirationInMs / 1000);
+        return new AuthTokenResponse(token, "Bearer", rol, nivelAcceso, nombre, expirationInMs / 1000);
     }
 }

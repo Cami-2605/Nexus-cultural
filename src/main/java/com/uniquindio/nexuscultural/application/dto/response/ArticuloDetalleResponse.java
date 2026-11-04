@@ -21,5 +21,25 @@ public record ArticuloDetalleResponse(
         List<String> imagenes,
         LocalDateTime fechaPublicacion,
         Double precioConDescuento,
-        Integer porcentajeDescuento
-) {}
+        Integer porcentajeDescuento,
+        String departamento,
+        String municipio
+) {
+    public ArticuloDetalleResponse(
+            String id,
+            String artesanoId,
+            String titulo,
+            String descripcion,
+            double montoPrecio,
+            String moneda,
+            int stock,
+            String estado,
+            String grupo,
+            List<String> imagenes,
+            LocalDateTime fechaPublicacion,
+            Double precioConDescuento,
+            Integer porcentajeDescuento
+    ) {
+        this(id, artesanoId, titulo, descripcion, montoPrecio, moneda, stock, estado, grupo, imagenes, fechaPublicacion, precioConDescuento, porcentajeDescuento, null, null);
+    }
+}

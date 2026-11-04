@@ -15,6 +15,11 @@ public class PedidoMapper {
     public PedidoEntity toEntity(Pedido domain) {
         if (domain == null) return null;
 
+        String motivoDev = domain.getDevolucion() != null ? domain.getDevolucion().getMotivo() : null;
+        String estadoDev = domain.getDevolucion() != null && domain.getDevolucion().getEstado() != null
+                ? domain.getDevolucion().getEstado().name() : null;
+        var fechaSolDev = domain.getDevolucion() != null ? domain.getDevolucion().getFechaSolicitud() : null;
+
         return PedidoEntity.builder()
                 .id(domain.getId())
                 .compradorId(domain.getCompradorId())
@@ -27,6 +32,9 @@ public class PedidoMapper {
                 .fechaEntrega(domain.getFechaEntrega())
                 .metodoPago(domain.getMetodoPago())
                 .referenciaTransaccion(domain.getReferenciaTransaccion())
+                .motivoDevolucion(motivoDev)
+                .estadoDevolucion(estadoDev)
+                .fechaSolicitudDevolucion(fechaSolDev)
                 .build();
     }
 
@@ -55,6 +63,19 @@ public class PedidoMapper {
         setField(pedido, "fechaEntrega", entity.getFechaEntrega());
         setField(pedido, "metodoPago", entity.getMetodoPago());
         setField(pedido, "referenciaTransaccion", entity.getReferenciaTransaccion());
+
+        if (entity.getMotivoDevolucion() != null && !entity.getMotivoDevolucion().isBlank()) {
+            java.time.LocalDateTime fechaSol = entity.getFechaSolicitudDevolucion() != null
+                    ? entity.getFechaSolicitudDevolucion() : java.time.LocalDateTime.now();
+            com.uniquindio.nexuscultural.domain.entity.Devolucion dev =
+                    com.uniquindio.nexuscultural.domain.entity.Devolucion.crear(pedido.getId(), entity.getMotivoDevolucion(), fechaSol);
+            if (entity.getEstadoDevolucion() != null) {
+                try {
+                    setField(dev, "estado", com.uniquindio.nexuscultural.domain.valueobject.EstadoDevolucion.valueOf(entity.getEstadoDevolucion()));
+                } catch (Exception ignored) {}
+            }
+            setField(pedido, "devolucion", dev);
+        }
 
         return pedido;
     }

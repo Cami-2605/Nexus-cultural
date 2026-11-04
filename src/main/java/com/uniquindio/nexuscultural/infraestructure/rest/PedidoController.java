@@ -110,6 +110,12 @@ public class PedidoController {
                 .body(pedidoService.solicitarDevolucion(request));
     }
 
+    /** GET /api/pedidos/devoluciones — Lista solicitudes de devolución para el panel de administración */
+    @GetMapping("/devoluciones")
+    public ResponseEntity<List<com.uniquindio.nexuscultural.application.dto.response.DevolucionDetalleResponse>> listarDevoluciones() {
+        return ResponseEntity.ok(pedidoService.listarDevoluciones());
+    }
+
     /** PATCH /api/pedidos/{id}/devolucion/resolver — El administrador aprueba o rechaza la devolución */
     @PatchMapping("/{id}/devolucion/resolver")
     public ResponseEntity<PedidoResponse> resolverDevolucion(
@@ -120,6 +126,9 @@ public class PedidoController {
 
     private PedidoResponse toResponse(Pedido pedido) {
         if (pedido == null) return null;
+        String motivoDev = pedido.getDevolucion() != null ? pedido.getDevolucion().getMotivo() : null;
+        String estadoDev = pedido.getDevolucion() != null && pedido.getDevolucion().getEstado() != null
+                ? pedido.getDevolucion().getEstado().name() : null;
         return new PedidoResponse(
                 pedido.getId(),
                 pedido.getCompradorId(),
@@ -131,7 +140,9 @@ public class PedidoController {
                 pedido.getFechaCreacion(),
                 pedido.getFechaEntrega(),
                 pedido.getMetodoPago(),
-                pedido.getReferenciaTransaccion()
+                pedido.getReferenciaTransaccion(),
+                motivoDev,
+                estadoDev
         );
     }
 }

@@ -29,6 +29,7 @@ public class SecurityConfig {
                         // 1. Endpoints públicos (Registro, Autenticación OTP y Versión de App)
                         .requestMatchers("/api/usuarios/solicitar", "/api/usuarios/verificar").permitAll()
                         .requestMatchers("/api/usuarios/**", "/api/app-version", "/api/version").permitAll()
+                        .requestMatchers("/api/pagos/wompi/webhook").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/artesanos", "/api/compradores").permitAll()
 
                         // 2. Catálogo público (para que compradores y visitantes vean las obras)

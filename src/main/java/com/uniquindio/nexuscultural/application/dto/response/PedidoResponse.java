@@ -15,5 +15,16 @@ public record PedidoResponse(
         LocalDateTime fechaCreacion,
         LocalDateTime fechaEntrega,
         String metodoPago,
-        String referenciaTransaccion
-) {}
+        String referenciaTransaccion,
+        String motivoDevolucion,
+        String estadoDevolucion
+) {
+    public PedidoResponse(
+            UUID id, UUID compradorId, UUID articuloId, int cantidad,
+            BigDecimal totalMonto, String totalMoneda, String estado,
+            LocalDateTime fechaCreacion, LocalDateTime fechaEntrega,
+            String metodoPago, String referenciaTransaccion) {
+        this(id, compradorId, articuloId, cantidad, totalMonto, totalMoneda,
+                estado, fechaCreacion, fechaEntrega, metodoPago, referenciaTransaccion, null, null);
+    }
+}
