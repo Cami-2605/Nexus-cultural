@@ -33,6 +33,7 @@ public class BeanConfiguration {
     }
 
     @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean(AdministradorRepository.class)
     public AdministradorRepository administradorRepository() {
         return new AdministradorRepositoryEnMemoria();
     }
