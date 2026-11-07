@@ -9,6 +9,13 @@ public record ConfirmarPagoWompiRequest(
         String transaccionId,
         String referencia,
         String metodoPago,
-        String estado
+        String estado,
+        String numeroTarjeta,
+        String cvc,
+        String expMonth,
+        String expYear,
+        String titularTarjeta,
+        Integer cuotas,
+        String emailComprador
 ) {
 }

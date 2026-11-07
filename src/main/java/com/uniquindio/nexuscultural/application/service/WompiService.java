@@ -87,11 +87,20 @@ public class WompiService {
      * en el panel de comercios de Wompi (https://comercios.wompi.co/).
      */
     public String crearTransaccionRealWompiCloud(Pedido pedido) {
+        return crearTransaccionRealWompiCloud(pedido, null);
+    }
+
+    public String crearTransaccionRealWompiCloud(Pedido pedido, ConfirmarPagoWompiRequest request) {
         try {
             BigDecimal montoTotal = pedido.getTotal().monto();
             long amountInCents = montoTotal.multiply(BigDecimal.valueOf(100)).longValue();
+            if (amountInCents < 150000L) {
+                amountInCents = 150000L; // Mínimo requerido por Wompi ($1,500 COP)
+            }
             String currency = pedido.getTotal().moneda() != null ? pedido.getTotal().moneda() : "COP";
-            String reference = "NEXUS-" + pedido.getId().toString().substring(0, 8) + "-" + System.currentTimeMillis();
+            String reference = (request != null && request.referencia() != null && !request.referencia().isBlank())
+                    ? request.referencia()
+                    : "NEXUS-" + pedido.getId().toString().substring(0, 8) + "-" + System.currentTimeMillis();
 
             // 1. Obtener acceptance_token y accept_personal_auth de Wompi
             HttpRequest infoReq = HttpRequest.newBuilder()
@@ -105,13 +114,57 @@ public class WompiService {
             String acceptToken = infoJson.path("data").path("presigned_acceptance").path("acceptance_token").asText();
             String dataToken = infoJson.path("data").path("presigned_personal_data_auth").path("acceptance_token").asText();
 
-            // 2. Tokenizar tarjeta de pruebas de Wompi (4242 4242...)
+            // Fallback al endpoint /merchants/{publicKey} si /merchants/info no retornó el token
+            if (acceptToken == null || acceptToken.isBlank()) {
+                HttpRequest legacyInfoReq = HttpRequest.newBuilder()
+                        .uri(URI.create(wompiConfig.getApiUrl() + "/merchants/" + wompiConfig.getPublicKey()))
+                        .GET()
+                        .timeout(Duration.ofSeconds(8))
+                        .build();
+                HttpResponse<String> legacyResp = httpClient.send(legacyInfoReq, HttpResponse.BodyHandlers.ofString());
+                JsonNode legacyJson = objectMapper.readTree(legacyResp.body());
+                acceptToken = legacyJson.path("data").path("presigned_acceptance").path("acceptance_token").asText();
+                dataToken = legacyJson.path("data").path("presigned_personal_data_auth").path("acceptance_token").asText();
+            }
+
+            // 2. Datos de tarjeta de pruebas de Wompi (tomados del request o fallback oficial 4242...)
+            String cardNumber = (request != null && request.numeroTarjeta() != null && !request.numeroTarjeta().isBlank())
+                    ? request.numeroTarjeta().replaceAll("\\s+", "")
+                    : "4242424242424242";
+            String cvc = (request != null && request.cvc() != null && !request.cvc().isBlank())
+                    ? request.cvc().trim()
+                    : "123";
+            String expMonth = (request != null && request.expMonth() != null && !request.expMonth().isBlank())
+                    ? request.expMonth().trim()
+                    : "12";
+            String expYear = (request != null && request.expYear() != null && !request.expYear().isBlank())
+                    ? request.expYear().trim()
+                    : "30";
+            String cardHolder = (request != null && request.titularTarjeta() != null && !request.titularTarjeta().isBlank())
+                    ? request.titularTarjeta().trim()
+                    : "Wilson Delgado";
+            int installments = (request != null && request.cuotas() != null && request.cuotas() > 0)
+                    ? request.cuotas()
+                    : 1;
+
+            String customerEmail = (request != null && request.emailComprador() != null && !request.emailComprador().isBlank())
+                    ? request.emailComprador().trim()
+                    : "soporte.nexuscultural@gmail.com";
+            if ("soporte.nexuscultural@gmail.com".equals(customerEmail)) {
+                try {
+                    Comprador c = compradorRepository.buscarPorId(pedido.getCompradorId()).orElse(null);
+                    if (c != null && c.getEmail() != null && !c.getEmail().toString().isBlank()) {
+                        customerEmail = c.getEmail().toString();
+                    }
+                } catch (Exception ignored) {}
+            }
+
             Map<String, Object> cardPayload = Map.of(
-                    "number", "4242424242424242",
-                    "cvc", "123",
-                    "exp_month", "12",
-                    "exp_year", "30",
-                    "card_holder", "Wilson Delgado"
+                    "number", cardNumber,
+                    "cvc", cvc,
+                    "exp_month", expMonth,
+                    "exp_year", expYear,
+                    "card_holder", cardHolder
             );
             HttpRequest tokenReq = HttpRequest.newBuilder()
                     .uri(URI.create(wompiConfig.getApiUrl() + "/tokens/cards"))
@@ -124,24 +177,30 @@ public class WompiService {
             JsonNode tokenJson = objectMapper.readTree(tokenResp.body());
             String cardToken = tokenJson.path("data").path("id").asText();
 
+            if (cardToken == null || cardToken.isBlank()) {
+                log.warn("No se pudo tokenizar tarjeta en Wompi (HTTP {}): {}", tokenResp.statusCode(), tokenResp.body());
+            }
+
             // 3. Firma de integridad SHA-256
             String signature = generarFirmaIntegridad(reference, amountInCents, currency);
 
             // 4. Crear la transacción en Wompi Cloud
-            Map<String, Object> txPayload = Map.of(
-                    "acceptance_token", acceptToken,
-                    "accept_personal_auth", dataToken,
-                    "amount_in_cents", amountInCents,
-                    "currency", currency,
-                    "signature", signature,
-                    "customer_email", "wilvive1@gmail.com",
-                    "payment_method", Map.of(
-                            "type", "CARD",
-                            "token", cardToken,
-                            "installments", 1
-                    ),
-                    "reference", reference
-            );
+            java.util.HashMap<String, Object> txPayload = new java.util.HashMap<>();
+            txPayload.put("acceptance_token", acceptToken);
+            if (dataToken != null && !dataToken.isBlank()) {
+                txPayload.put("accept_personal_auth", dataToken);
+            }
+            txPayload.put("amount_in_cents", amountInCents);
+            txPayload.put("currency", currency);
+            txPayload.put("signature", signature);
+            txPayload.put("customer_email", customerEmail);
+            txPayload.put("payment_method", Map.of(
+                    "type", "CARD",
+                    "token", cardToken,
+                    "installments", installments
+            ));
+            txPayload.put("reference", reference);
+
             HttpRequest txReq = HttpRequest.newBuilder()
                     .uri(URI.create(wompiConfig.getApiUrl() + "/transactions"))
                     .header("Authorization", "Bearer " + wompiConfig.getPrivateKey())
@@ -154,6 +213,11 @@ public class WompiService {
             String wompiTxId = txJson.path("data").path("id").asText();
             String wompiStatus = txJson.path("data").path("status").asText();
 
+            if (wompiTxId == null || wompiTxId.isBlank()) {
+                log.error("Respuesta de Wompi sin ID de transacción (HTTP {}): {}", txResp.statusCode(), txResp.body());
+                return "WOMPI-TX-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+            }
+
             log.info("\n" +
                     "================================================================================\n" +
                     " [WOMPI CLOUD] ¡TRANSACCIÓN REAL CREADA EN WOMPI SANDBOX!\n" +
@@ -161,10 +225,11 @@ public class WompiService {
                     " Referencia: {}\n" +
                     " Monto: ${} {}\n" +
                     " Estado: {}\n" +
-                    " Comercio: Nexus Cultural (Wilson Ricardo Delgado Viveros)\n" +
+                    " Tarjeta Tokenizada: {} ({})\n" +
+                    " Comercio: Nexus Cultural S.A.S.\n" +
                     " Portal Wompi para verificar: https://comercios.wompi.co/\n" +
                     "================================================================================",
-                    wompiTxId, reference, montoTotal, currency, wompiStatus);
+                    wompiTxId, reference, montoTotal, currency, wompiStatus, cardToken, cardHolder);
 
             return wompiTxId;
         } catch (Exception e) {
@@ -196,7 +261,7 @@ public class WompiService {
 
         String effectiveRedirectUrl = (redirectUrl != null && !redirectUrl.isBlank())
                 ? redirectUrl
-                : "https://nexuscultural.com/order-success?id=" + pedido.getId();
+                : "https://nexuscultural.com/wompi-return?pedidoId=" + pedido.getId();
 
         String checkoutUrl = wompiConfig.getCheckoutUrl()
                 + "?public-key=" + wompiConfig.getPublicKey()
@@ -220,7 +285,7 @@ public class WompiService {
 
     /**
      * Confirma el pago de un pedido tras recibir la confirmación de Wompi (o simulación).
-     * Si no trae transacción previa, crea la transacción real en los servidores de Wompi.
+     * Si no trae transacción previa real de Wompi, crea la transacción real en los servidores de Wompi.
      */
     @Transactional
     public Pedido confirmarPago(ConfirmarPagoWompiRequest request) {
@@ -229,8 +294,12 @@ public class WompiService {
 
         if (pedido.getEstado() == EstadoPedido.PENDIENTE) {
             String transaccionId = request.transaccionId();
-            if (transaccionId == null || transaccionId.isBlank() || transaccionId.startsWith("WOMPI-SIM-")) {
-                transaccionId = crearTransaccionRealWompiCloud(pedido);
+            if (transaccionId == null
+                    || transaccionId.isBlank()
+                    || transaccionId.startsWith("WOMPI-SIM-")
+                    || transaccionId.startsWith("WOMPI-TX-")
+                    || transaccionId.equals(pedido.getId().toString())) {
+                transaccionId = crearTransaccionRealWompiCloud(pedido, request);
             }
 
             String metodo = (request.metodoPago() != null && !request.metodoPago().isBlank())
