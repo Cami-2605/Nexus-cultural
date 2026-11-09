@@ -11,4 +11,7 @@ public interface PedidoRepository {
     void guardar(Pedido pedido);
     List<Pedido> buscarPorCompradorId(UUID compradorId);
     List<Pedido> buscarPorArtesanoId(UUID artesanoId);
+    List<Pedido> listarDevoluciones();
+    Optional<Pedido> buscarPorReferenciaTransaccion(String referenciaTransaccion);
+    List<Pedido> listarTodos();
 }

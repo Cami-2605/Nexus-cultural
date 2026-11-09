@@ -49,4 +49,26 @@ public class PedidoRepositoryPostgresAdapter implements PedidoRepository {
                 .map(pedidoMapper::toDomain)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public List<Pedido> listarDevoluciones() {
+        return springDataPedidoRepository.findDevoluciones()
+                .stream()
+                .map(pedidoMapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public Optional<Pedido> buscarPorReferenciaTransaccion(String referenciaTransaccion) {
+        return springDataPedidoRepository.findByReferenciaTransaccion(referenciaTransaccion)
+                .map(pedidoMapper::toDomain);
+    }
+
+    @Override
+    public List<Pedido> listarTodos() {
+        return springDataPedidoRepository.findAll()
+                .stream()
+                .map(pedidoMapper::toDomain)
+                .collect(Collectors.toList());
+    }
 }

@@ -20,9 +20,10 @@ public class Articulo {
 
     private final UUID id;
     private final UUID artesanoId;          // referencia por ID, no por objeto
-    private final Grupo grupo;
     private final LocalDateTime fechaPublicacion;
-    private final List<String> imagenes;    // el dominio solo conoce referencias (URLs/keys)
+
+    private Grupo grupo;
+    private List<String> imagenes;          // el dominio solo conoce referencias (URLs/keys)
 
     private String titulo;
     private String descripcion;
@@ -163,6 +164,9 @@ public class Articulo {
         if (estado == EstadoArticulo.ELIMINADO) {
             throw new ReglaDominioException("No se puede actualizar el inventario de un artículo eliminado.");
         }
+        if (estado == EstadoArticulo.INACTIVO) {
+            throw new ReglaDominioException("El artículo está inactivo o bloqueado por moderación y no puede ser modificado.");
+        }
         if (nuevaCantidad < 0) {
             throw new ReglaDominioException("La cantidad no puede ser negativa.");
         }
@@ -192,6 +196,39 @@ public class Articulo {
             throw new ReglaDominioException("La descripción no puede estar vacía.");
         }
         this.descripcion = nuevaDescripcion;
+    }
+
+    public void actualizarDatos(UUID solicitanteId, String nuevoTitulo, String nuevaDescripcion, Precio nuevoPrecio, int nuevoStock, Grupo nuevoGrupo, List<String> nuevasImagenes) {
+        if (!artesanoId.equals(solicitanteId)) {
+            throw new ReglaDominioException("Solo el artesano dueño del artículo puede actualizar sus datos.");
+        }
+        if (estado == EstadoArticulo.ELIMINADO) {
+            throw new ReglaDominioException("No se puede actualizar un artículo eliminado.");
+        }
+        if (estado == EstadoArticulo.INACTIVO) {
+            throw new ReglaDominioException("El artículo está inactivo o bloqueado por moderación y no puede ser modificado.");
+        }
+        if (nuevoTitulo != null && !nuevoTitulo.isBlank()) {
+            this.titulo = nuevoTitulo;
+        }
+        if (nuevaDescripcion != null && !nuevaDescripcion.isBlank()) {
+            this.descripcion = nuevaDescripcion;
+        }
+        if (nuevoPrecio != null) {
+            this.precio = nuevoPrecio;
+        }
+        if (nuevoStock >= 0) {
+            this.stock = nuevoStock;
+            if (estado != EstadoArticulo.INACTIVO) {
+                estado = (nuevoStock > 0) ? EstadoArticulo.DISPONIBLE : EstadoArticulo.AGOTADO;
+            }
+        }
+        if (nuevoGrupo != null) {
+            this.grupo = nuevoGrupo;
+        }
+        if (nuevasImagenes != null && !nuevasImagenes.isEmpty()) {
+            this.imagenes = new ArrayList<>(nuevasImagenes);
+        }
     }
 
     /** Aplica un descuento al artículo. El artículo no debe estar eliminado. */

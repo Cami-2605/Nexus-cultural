@@ -17,4 +17,6 @@ public interface SpringDataArticuloRepository extends JpaRepository<ArticuloEnti
     List<ArticuloEntity> findByEstadoAndGrupo(String estado, String grupo);
 
     List<ArticuloEntity> findByArtesanoId(UUID artesanoId);
+
+    List<ArticuloEntity> findByArtesanoIdAndEstadoNot(UUID artesanoId, String estado);
 }

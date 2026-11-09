@@ -9,6 +9,7 @@ import com.uniquindio.nexuscultural.domain.exception.ReglaDominioException;
 import com.uniquindio.nexuscultural.domain.repository.ArticuloRepository;
 import com.uniquindio.nexuscultural.domain.repository.PedidoRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -19,11 +20,14 @@ public class PedidoService {
 
     private final PedidoRepository pedidoRepository;
     private final ArticuloRepository articuloRepository;
+    private final WompiService wompiService;
 
     public PedidoService(PedidoRepository pedidoRepository,
-                         ArticuloRepository articuloRepository) {
+                         ArticuloRepository articuloRepository,
+                         WompiService wompiService) {
         this.pedidoRepository = pedidoRepository;
         this.articuloRepository = articuloRepository;
+        this.wompiService = wompiService;
     }
 
     /**
@@ -31,6 +35,7 @@ public class PedidoService {
      * Si el artículo no tiene stock suficiente, Articulo.reducirStock() lanza la excepción
      * antes de persistir nada, dejando el sistema consistente.
      */
+    @Transactional
     public Pedido crearPedido(UUID compradorId, UUID articuloId, int cantidad) {
         Articulo articulo = articuloRepository.buscarPorId(articuloId)
                 .orElseThrow(() -> new ReglaDominioException("Artículo no encontrado."));
@@ -46,6 +51,7 @@ public class PedidoService {
         return pedido;
     }
 
+    @Transactional
     public Pedido procesarPago(ProcesarPagoRequest request) {
         Pedido pedido = pedidoRepository.obtenerPorId(request.idPedido())
                 .orElseThrow(() -> new ReglaDominioException("Pedido no encontrado."));
@@ -83,7 +89,8 @@ public class PedidoService {
     }
 
     /**
-     * Si la devolución se aprueba, el stock vuelve al artículo.
+     * Si la devolución se aprueba, el stock vuelve al artículo y se ejecuta
+     * el reembolso en Wompi (sandbox / simulación).
      */
     public Pedido resolverDevolucion(UUID pedidoId, boolean aprobar) {
         Pedido pedido = pedidoRepository.obtenerPorId(pedidoId)
@@ -96,10 +103,21 @@ public class PedidoService {
                     .orElseThrow(() -> new ReglaDominioException("Artículo no encontrado."));
             articulo.reponerStock(pedido.getCantidad());
             articuloRepository.guardar(articulo);
+
+            // Ejecución del reembolso en Wompi (o simulación sandbox)
+            try {
+                wompiService.ejecutarReembolsoWompi(pedido);
+            } catch (Exception e) {
+                // Registro del evento sin interrumpir la consistencia del estado del pedido
+            }
         }
 
         pedidoRepository.guardar(pedido);
         return pedido;
+    }
+
+    public List<com.uniquindio.nexuscultural.application.dto.response.DevolucionDetalleResponse> listarDevoluciones() {
+        return wompiService.listarDevolucionesDetalladas();
     }
 
     public List<Pedido> listarPorComprador(UUID compradorId) {

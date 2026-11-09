@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -15,4 +16,9 @@ public interface SpringDataPedidoRepository extends JpaRepository<PedidoEntity, 
 
     @Query("SELECT p FROM PedidoEntity p WHERE p.articuloId IN (SELECT a.id FROM ArticuloEntity a WHERE a.artesanoId = :artesanoId)")
     List<PedidoEntity> findByArtesanoId(@Param("artesanoId") UUID artesanoId);
+
+    @Query("SELECT p FROM PedidoEntity p WHERE p.estadoDevolucion IS NOT NULL OR p.estado = 'EN_DEVOLUCION'")
+    List<PedidoEntity> findDevoluciones();
+
+    Optional<PedidoEntity> findByReferenciaTransaccion(String referenciaTransaccion);
 }

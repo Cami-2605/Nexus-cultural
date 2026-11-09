@@ -29,4 +29,7 @@ public interface ArticuloRepository {
 
     /** Retorna todos los artículos del artesano, sin filtrar por estado. */
     List<Articulo> listarPorArtesano(UUID artesanoId);
+
+    /** Retorna todos los artículos sin filtrar por estado (para administración y moderación). */
+    List<Articulo> listarTodos();
 }

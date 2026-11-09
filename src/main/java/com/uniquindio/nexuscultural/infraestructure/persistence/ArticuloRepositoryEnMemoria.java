@@ -63,6 +63,14 @@ public class ArticuloRepositoryEnMemoria implements ArticuloRepository {
     public List<Articulo> listarPorArtesano(UUID artesanoId) {
         return articulos.values().stream()
                 .filter(a -> a.getArtesanoId().equals(artesanoId))
+                .filter(a -> a.getEstado() != EstadoArticulo.ELIMINADO)
+                .toList();
+    }
+
+    @Override
+    public List<Articulo> listarTodos() {
+        return articulos.values().stream()
+                .filter(a -> a.getEstado() != EstadoArticulo.ELIMINADO)
                 .toList();
     }
 }

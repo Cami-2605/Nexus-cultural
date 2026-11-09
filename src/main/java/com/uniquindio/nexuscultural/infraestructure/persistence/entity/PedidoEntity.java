@@ -43,4 +43,13 @@ public class PedidoEntity {
     private LocalDateTime fechaEntrega;
     private String metodoPago;
     private String referenciaTransaccion;
+
+    @Column(name = "motivo_devolucion", length = 1000)
+    private String motivoDevolucion;
+
+    @Column(name = "estado_devolucion", length = 50)
+    private String estadoDevolucion;
+
+    @Column(name = "fecha_solicitud_devolucion")
+    private LocalDateTime fechaSolicitudDevolucion;
 }

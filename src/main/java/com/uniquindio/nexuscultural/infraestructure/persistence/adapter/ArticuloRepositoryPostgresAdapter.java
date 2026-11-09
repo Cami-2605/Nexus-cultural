@@ -69,9 +69,18 @@ public class ArticuloRepositoryPostgresAdapter implements ArticuloRepository {
 
     @Override
     public List<Articulo> listarPorArtesano(UUID artesanoId) {
-        return springDataArticuloRepository.findByArtesanoId(artesanoId)
+        return springDataArticuloRepository.findByArtesanoIdAndEstadoNot(artesanoId, EstadoArticulo.ELIMINADO.name())
                 .stream()
                 .map(articuloMapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Articulo> listarTodos() {
+        return springDataArticuloRepository.findAll()
+                .stream()
+                .map(articuloMapper::toDomain)
+                .filter(a -> a.getEstado() != EstadoArticulo.ELIMINADO)
                 .collect(Collectors.toList());
     }
 }
