@@ -20,6 +20,9 @@ public class SolicitarOtpUseCase {
     }
 
     public MensajeRespuestaResponse ejecutar(SolicitarOtpRequest request) {
+        // Reiniciar contador de intentos previos
+        ValidarOtpUseCase.reiniciarIntentos(request.email());
+
         // Se asigna un valor entero que representa los minutos de validez
         CodigoOtp nuevoOtp = CodigoOtp.generar(5);
 

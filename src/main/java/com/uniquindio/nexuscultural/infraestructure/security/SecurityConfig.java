@@ -25,6 +25,16 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // Encabezados de seguridad reforzados para cumplimiento de auditoría (HSTS)
+                .headers(headers -> headers
+                        .httpStrictTransportSecurity(hsts -> hsts
+                                .includeSubDomains(true)
+                                .maxAgeInSeconds(31536000)
+                                .preload(true)
+                        )
+                        .frameOptions(frame -> frame.deny())
+                        .contentTypeOptions(content -> {})
+                )
                 .authorizeHttpRequests(auth -> auth
                         // 1. Endpoints públicos (Registro, Autenticación OTP y Versión de App)
                         .requestMatchers("/api/usuarios/solicitar", "/api/usuarios/verificar").permitAll()
