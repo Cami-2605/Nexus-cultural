@@ -36,11 +36,12 @@ public class SecurityConfig {
                         .contentTypeOptions(content -> {})
                 )
                 .authorizeHttpRequests(auth -> auth
-                        // 1. Endpoints públicos (Registro, Autenticación OTP y Versión de App)
+                        // 1. Endpoints públicos (Registro, Autenticación OTP, Versión y Monitoreo Actuator/Swagger)
                         .requestMatchers("/api/usuarios/solicitar", "/api/usuarios/verificar").permitAll()
                         .requestMatchers("/api/usuarios/**", "/api/app-version", "/api/version").permitAll()
                         .requestMatchers("/api/pagos/wompi/webhook").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/artesanos", "/api/compradores").permitAll()
+                        .requestMatchers("/actuator/**", "/swagger-ui/**", "/swagger-ui.html", "/api-docs/**").permitAll()
 
                         // 2. Catálogo público (para que compradores y visitantes vean las obras)
                         .requestMatchers(HttpMethod.GET, "/api/catalogo/**", "/api/articulos/**").permitAll()
