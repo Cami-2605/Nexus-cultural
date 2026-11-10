@@ -24,19 +24,22 @@ public class CompradorController {
     private final ActualizarDireccionEntregaUseCase actualizarDireccionEntregaUseCase;
     private final GestionarFavoritosUseCase gestionarFavoritosUseCase;
     private final CompradorMapper compradorMapper; // Inyección del Mapper
+    private final com.uniquindio.nexuscultural.infraestructure.security.SecurityAuthorizationService securityAuthorizationService;
 
     public CompradorController(RegistrarCompradorUseCase registrarCompradorUseCase,
                                ConsultarPerfilCompradorUseCase consultarPerfilCompradorUseCase,
                                ActualizarPerfilCompradorUseCase actualizarPerfilCompradorUseCase,
                                ActualizarDireccionEntregaUseCase actualizarDireccionEntregaUseCase,
                                GestionarFavoritosUseCase gestionarFavoritosUseCase,
-                               CompradorMapper compradorMapper) {
+                               CompradorMapper compradorMapper,
+                               com.uniquindio.nexuscultural.infraestructure.security.SecurityAuthorizationService securityAuthorizationService) {
         this.registrarCompradorUseCase = registrarCompradorUseCase;
         this.consultarPerfilCompradorUseCase = consultarPerfilCompradorUseCase;
         this.actualizarPerfilCompradorUseCase = actualizarPerfilCompradorUseCase;
         this.actualizarDireccionEntregaUseCase = actualizarDireccionEntregaUseCase;
         this.gestionarFavoritosUseCase = gestionarFavoritosUseCase;
         this.compradorMapper = compradorMapper;
+        this.securityAuthorizationService = securityAuthorizationService;
     }
 
     @PostMapping
@@ -59,6 +62,7 @@ public class CompradorController {
 
     @GetMapping("/{id}")
     public ResponseEntity<CompradorResponse> consultarPerfil(@PathVariable UUID id) {
+        securityAuthorizationService.validarAccesoRecursoOAdmin(id);
         Comprador comprador = consultarPerfilCompradorUseCase.ejecutar(id);
         return ResponseEntity.ok(compradorMapper.toResponse(comprador));
     }
@@ -66,6 +70,7 @@ public class CompradorController {
     @PutMapping("/{id}")
     public ResponseEntity<CompradorResponse> actualizarPerfil(@PathVariable UUID id,
                                                               @Valid @RequestBody ActualizarPerfilCompradorRequest request) {
+        securityAuthorizationService.validarAccesoRecursoOAdmin(id);
         Comprador comprador = actualizarPerfilCompradorUseCase.ejecutar(id, request.nombreCompleto());
         return ResponseEntity.ok(compradorMapper.toResponse(comprador));
     }
@@ -73,6 +78,7 @@ public class CompradorController {
     @PutMapping("/{id}/direccion")
     public ResponseEntity<CompradorResponse> actualizarDireccion(@PathVariable UUID id,
                                                                  @Valid @RequestBody ActualizarDireccionRequest request) {
+        securityAuthorizationService.validarAccesoRecursoOAdmin(id);
         UbicacionGeografica nuevaDireccion = new UbicacionGeografica(
                 request.departamento(),
                 request.municipio(),
@@ -86,12 +92,14 @@ public class CompradorController {
     @PostMapping("/{id}/favoritos")
     public ResponseEntity<CompradorResponse> agregarFavorito(@PathVariable UUID id,
                                                              @Valid @RequestBody AgregarFavoritoRequest request) {
+        securityAuthorizationService.validarAccesoRecursoOAdmin(id);
         Comprador comprador = gestionarFavoritosUseCase.agregarFavorito(id, request.articuloId());
         return ResponseEntity.ok(compradorMapper.toResponse(comprador));
     }
 
     @GetMapping("/{id}/favoritos")
     public ResponseEntity<List<UUID>> consultarFavoritos(@PathVariable UUID id) {
+        securityAuthorizationService.validarAccesoRecursoOAdmin(id);
         List<UUID> favoritos = gestionarFavoritosUseCase.consultarFavoritos(id);
         return ResponseEntity.ok(favoritos);
     }
@@ -99,6 +107,7 @@ public class CompradorController {
     @DeleteMapping("/{id}/favoritos/{articuloId}")
     public ResponseEntity<CompradorResponse> eliminarFavorito(@PathVariable UUID id,
                                                               @PathVariable UUID articuloId) {
+        securityAuthorizationService.validarAccesoRecursoOAdmin(id);
         Comprador comprador = gestionarFavoritosUseCase.eliminarFavorito(id, articuloId);
         return ResponseEntity.ok(compradorMapper.toResponse(comprador));
     }

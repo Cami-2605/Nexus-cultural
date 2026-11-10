@@ -25,10 +25,10 @@ class CodigoOtpTest {
     @DisplayName("No debe permitir crear un OTP con formato inválido")
     void noDebeCrearOtpConFormatoInvalido() {
         assertThrows(ReglaDominioException.class, () ->
-                new CodigoOtp("ABCDEF", LocalDateTime.now().plusMinutes(5), EstadoOtp.PENDIENTE)
+                new CodigoOtp("", LocalDateTime.now().plusMinutes(5), EstadoOtp.PENDIENTE)
         );
         assertThrows(ReglaDominioException.class, () ->
-                new CodigoOtp("12345", LocalDateTime.now().plusMinutes(5), EstadoOtp.PENDIENTE)
+                new CodigoOtp("   ", LocalDateTime.now().plusMinutes(5), EstadoOtp.PENDIENTE)
         );
     }
 

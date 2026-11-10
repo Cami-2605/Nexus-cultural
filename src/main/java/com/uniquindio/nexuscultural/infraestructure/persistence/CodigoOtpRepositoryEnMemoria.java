@@ -2,6 +2,7 @@ package com.uniquindio.nexuscultural.infraestructure.persistence;
 
 import com.uniquindio.nexuscultural.domain.repository.CodigoOtpRepository;
 import com.uniquindio.nexuscultural.domain.valueobject.CodigoOtp;
+import com.uniquindio.nexuscultural.infraestructure.persistence.adapter.CodigoOtpRepositoryPostgresAdapter;
 
 import java.util.Map;
 import java.util.Optional;
@@ -14,7 +15,9 @@ public class CodigoOtpRepositoryEnMemoria implements CodigoOtpRepository {
 
     @Override
     public void guardar(String email, CodigoOtp otp) {
-        codigosOtp.put(email, otp);
+        String hash = CodigoOtpRepositoryPostgresAdapter.hashearCodigo(otp.codigo());
+        CodigoOtp hasheado = new CodigoOtp(hash, otp.fechaExpiracion(), otp.estado(), otp.intentosFallidos());
+        codigosOtp.put(email, hasheado);
     }
 
     @Override

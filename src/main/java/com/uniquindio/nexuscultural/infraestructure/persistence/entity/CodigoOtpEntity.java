@@ -20,8 +20,8 @@ public class CodigoOtpEntity {
     @Column(nullable = false)
     private String email;
 
-    @Column(nullable = false)
-    private String codigo;
+    @Column(name = "codigo", nullable = false)
+    private String codigoHash;
 
     @Column(nullable = false)
     private LocalDateTime fechaExpiracion;
@@ -32,4 +32,7 @@ public class CodigoOtpEntity {
 
     @Column(nullable = false)
     private LocalDateTime fechaCreacion;
+
+    @Transient
+    private int intentosFallidos = 0;
 }
