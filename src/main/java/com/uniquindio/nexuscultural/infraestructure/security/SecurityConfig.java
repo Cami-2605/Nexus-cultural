@@ -25,12 +25,23 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // Encabezados de seguridad reforzados para cumplimiento de auditoría (HSTS)
+                .headers(headers -> headers
+                        .httpStrictTransportSecurity(hsts -> hsts
+                                .includeSubDomains(true)
+                                .maxAgeInSeconds(31536000)
+                                .preload(true)
+                        )
+                        .frameOptions(frame -> frame.deny())
+                        .contentTypeOptions(content -> {})
+                )
                 .authorizeHttpRequests(auth -> auth
-                        // 1. Endpoints públicos (Registro, Autenticación OTP y Versión de App)
+                        // 1. Endpoints públicos (Registro, Autenticación OTP, Versión y Monitoreo Actuator/Swagger)
                         .requestMatchers("/api/usuarios/solicitar", "/api/usuarios/verificar").permitAll()
                         .requestMatchers("/api/usuarios/**", "/api/app-version", "/api/version").permitAll()
                         .requestMatchers("/api/pagos/wompi/webhook").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/artesanos", "/api/compradores").permitAll()
+                        .requestMatchers("/actuator/**", "/swagger-ui/**", "/swagger-ui.html", "/api-docs/**").permitAll()
 
                         // 2. Catálogo público (para que compradores y visitantes vean las obras)
                         .requestMatchers(HttpMethod.GET, "/api/catalogo/**", "/api/articulos/**").permitAll()

@@ -21,9 +21,12 @@ import java.util.UUID;
 public class PedidoController {
 
     private final PedidoService pedidoService;
+    private final com.uniquindio.nexuscultural.infraestructure.security.SecurityAuthorizationService securityAuthorizationService;
 
-    public PedidoController(PedidoService pedidoService) {
+    public PedidoController(PedidoService pedidoService,
+                            com.uniquindio.nexuscultural.infraestructure.security.SecurityAuthorizationService securityAuthorizationService) {
         this.pedidoService = pedidoService;
+        this.securityAuthorizationService = securityAuthorizationService;
     }
 
     /** POST /api/pedidos — El comprador crea un pedido para un artículo */
@@ -35,6 +38,7 @@ public class PedidoController {
             @Valid @RequestBody(required = false) CrearPedidoRequest request) {
 
         UUID finalCompradorId = request != null ? request.compradorId() : compradorId;
+        securityAuthorizationService.validarAccesoRecursoOAdmin(finalCompradorId);
         UUID finalArticuloId = request != null ? request.articuloId() : articuloId;
         int finalCantidad = request != null ? request.cantidad() : (cantidad != null ? cantidad : 1);
 
@@ -45,12 +49,15 @@ public class PedidoController {
     /** GET /api/pedidos/{id} — Consulta detalle de un pedido por ID */
     @GetMapping("/{id}")
     public ResponseEntity<PedidoResponse> obtenerPorId(@PathVariable UUID id) {
-        return ResponseEntity.ok(toResponse(pedidoService.obtenerPorId(id)));
+        Pedido pedido = pedidoService.obtenerPorId(id);
+        securityAuthorizationService.validarAccesoRecursoOAdmin(pedido.getCompradorId());
+        return ResponseEntity.ok(toResponse(pedido));
     }
 
     /** GET /api/pedidos/comprador/{compradorId} — Lista pedidos realizados por un comprador */
     @GetMapping("/comprador/{compradorId}")
     public ResponseEntity<List<PedidoResponse>> listarPorComprador(@PathVariable UUID compradorId) {
+        securityAuthorizationService.validarAccesoRecursoOAdmin(compradorId);
         List<PedidoResponse> pedidos = pedidoService.listarPorComprador(compradorId)
                 .stream()
                 .map(this::toResponse)
@@ -61,6 +68,7 @@ public class PedidoController {
     /** GET /api/pedidos/artesano/{artesanoId} — Lista pedidos de obras vendidas por un artesano */
     @GetMapping("/artesano/{artesanoId}")
     public ResponseEntity<List<PedidoResponse>> listarPorArtesano(@PathVariable UUID artesanoId) {
+        securityAuthorizationService.validarAccesoRecursoOAdmin(artesanoId);
         List<PedidoResponse> pedidos = pedidoService.listarPorArtesano(artesanoId)
                 .stream()
                 .map(this::toResponse)

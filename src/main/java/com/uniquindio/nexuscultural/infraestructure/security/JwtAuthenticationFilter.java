@@ -46,10 +46,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 String email = claims.getSubject();
                 String rol = claims.get("rol", String.class);
+                String idUsuario = claims.get("id", String.class);
 
                 if (email != null && rol != null) {
                     var authority = new SimpleGrantedAuthority("ROLE_" + rol);
-                    var authToken = new UsernamePasswordAuthenticationToken(email, null, List.of(authority));
+                    // Pasamos idUsuario en credentials para que los controladores puedan validar la propiedad del recurso
+                    var authToken = new UsernamePasswordAuthenticationToken(email, idUsuario, List.of(authority));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
             } catch (Exception e) {

@@ -45,3 +45,9 @@ out/
 
 ### VS Code ###
 .vscode/
+
+
+##Logs##
+logs/
+backups/
+
