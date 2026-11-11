@@ -22,9 +22,17 @@ mkdir -p "${PROJECT_ROOT}/logs"
 echo "======================================================================" >> "$LOG_FILE"
 echo "🕒 [$(date '+%Y-%m-%d %H:%M:%S')] Iniciando respaldo mensual de PostgreSQL..." >> "$LOG_FILE"
 
-# 2. Cargar variables de entorno desde .env si existe
+# 2. Cargar variables de entorno desde .env si existe (filtrando solo identificadores válidos en Bash)
 if [ -f "${PROJECT_ROOT}/.env" ]; then
-    export $(grep -v '^#' "${PROJECT_ROOT}/.env" | xargs -d '\n' 2>/dev/null || true)
+    while IFS= read -r line || [ -n "$line" ]; do
+        # Omitir comentarios y líneas vacías
+        [[ "$line" =~ ^[[:space:]]*# ]] && continue
+        [[ -z "${line// }" ]] && continue
+        # Exportar solo si tiene el formato NOMBRE_VAR=VALOR
+        if [[ "$line" =~ ^[A-Za-z_][A-Za-z0-9_]*= ]]; then
+            export "$line"
+        fi
+    done < "${PROJECT_ROOT}/.env"
 fi
 
 # 3. Parámetros de conexión a PostgreSQL
@@ -49,7 +57,7 @@ if [ -n "${SPRING_DATASOURCE_PASSWORD:-}" ]; then
     export PGPASSWORD="$SPRING_DATASOURCE_PASSWORD"
 fi
 
-echo "📦 Parámetros: Host=$DB_HOST, Puerto=$DB_PORT, BD=$DB_NAME, Usuario=$DB_USER" >> "$LOG_FILE"
+echo "Parámetros: Host=$DB_HOST, Puerto=$DB_PORT, BD=$DB_NAME, Usuario=$DB_USER" >> "$LOG_FILE"
 
 # 4. Ejecutar pg_dump comprimido
 if command -v pg_dump >/dev/null 2>&1; then
@@ -57,7 +65,7 @@ if command -v pg_dump >/dev/null 2>&1; then
     BACKUP_SIZE=$(du -sh "$BACKUP_FILE" | cut -f1)
     echo "✅ [$(date '+%Y-%m-%d %H:%M:%S')] Respaldo generado con éxito: $BACKUP_FILE ($BACKUP_SIZE)" >> "$LOG_FILE"
 else
-    echo "⚠️ pg_dump no encontrado en PATH del sistema; simulando o registrando contenedor Docker..." >> "$LOG_FILE"
+    echo "pg_dump no encontrado en PATH del sistema; simulando o registrando contenedor Docker..." >> "$LOG_FILE"
     # Fallback si PostgreSQL corre en contenedor Docker
     if command -v docker >/dev/null 2>&1 && docker ps | grep -q "postgres"; then
         CONTAINER_ID=$(docker ps --filter "ancestor=postgres" --format "{{.ID}}" | head -n 1)

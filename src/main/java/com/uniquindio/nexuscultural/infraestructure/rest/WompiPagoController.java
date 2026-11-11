@@ -30,12 +30,30 @@ public class WompiPagoController {
     /**
      * POST /api/pagos/wompi/checkout-session
      * Genera la sesión de pago con firma de integridad SHA-256 para el Checkout Web de Wompi.
+     * Admite pedidoId como query param o en el cuerpo JSON.
      */
     @PostMapping("/checkout-session")
     public ResponseEntity<WompiCheckoutSessionResponse> crearSesionCheckout(
-            @RequestParam UUID pedidoId,
-            @RequestParam(required = false) String redirectUrl) {
-        WompiCheckoutSessionResponse response = wompiService.crearSesionCheckout(pedidoId, redirectUrl);
+            @RequestParam(required = false) UUID pedidoId,
+            @RequestParam(required = false) String redirectUrl,
+            @RequestBody(required = false) Map<String, Object> body) {
+        UUID finalPedidoId = pedidoId;
+        String finalRedirectUrl = redirectUrl;
+
+        if (finalPedidoId == null && body != null && body.containsKey("pedidoId")) {
+            try {
+                finalPedidoId = UUID.fromString(body.get("pedidoId").toString());
+            } catch (Exception ignored) {}
+        }
+        if (finalRedirectUrl == null && body != null && body.containsKey("redirectUrl")) {
+            finalRedirectUrl = body.get("redirectUrl").toString();
+        }
+
+        if (finalPedidoId == null) {
+            throw new com.uniquindio.nexuscultural.domain.exception.ReglaDominioException("El pedidoId es obligatorio para crear la sesión de checkout.");
+        }
+
+        WompiCheckoutSessionResponse response = wompiService.crearSesionCheckout(finalPedidoId, finalRedirectUrl);
         return ResponseEntity.ok(response);
     }
 
