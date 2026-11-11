@@ -5,10 +5,14 @@ import com.uniquindio.nexuscultural.application.dto.response.MensajeRespuestaRes
 import com.uniquindio.nexuscultural.domain.repository.CodigoOtpRepository;
 import com.uniquindio.nexuscultural.domain.valueobject.CodigoOtp;
 import com.uniquindio.nexuscultural.infraestructure.persistence.adapter.FirebaseNotificadorAdapter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
 public class SolicitarOtpUseCase {
+
+    private static final Logger log = LoggerFactory.getLogger(SolicitarOtpUseCase.class);
 
     private final CodigoOtpRepository otpRepository;
     private final FirebaseNotificadorAdapter firebaseNotificadorAdapter;
@@ -26,13 +30,13 @@ public class SolicitarOtpUseCase {
         // Se asigna un valor entero que representa los minutos de validez
         CodigoOtp nuevoOtp = CodigoOtp.generar(5);
 
-        // Se guarda asociado al email en PostgreSQL
+        // Se guarda asociado al email en PostgreSQL (almacenando únicamente hash SHA-256)
         otpRepository.guardar(request.email(), nuevoOtp);
 
         // Se inserta en la colección "mail" de Firestore para activar Trigger Email
         firebaseNotificadorAdapter.enviarCorreoOtp(request.email(), nuevoOtp.codigo());
 
-        System.out.println("📩 [OTP GENERADO]: El código para " + request.email() + " es: " + nuevoOtp.codigo());
+        log.info("Código OTP generado y despachado exitosamente para correo enmascarado.");
 
         return new MensajeRespuestaResponse("Código OTP enviado con éxito al correo.", true);
     }

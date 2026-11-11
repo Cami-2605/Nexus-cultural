@@ -8,6 +8,8 @@ import com.uniquindio.nexuscultural.domain.valueobject.TrayectoriaCultural;
 import com.uniquindio.nexuscultural.domain.valueobject.UbicacionGeografica;
 import com.uniquindio.nexuscultural.infraestructure.persistence.entity.ArtesanoEntity;
 import com.uniquindio.nexuscultural.infraestructure.persistence.repository.SpringDataArtesanoRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Repository;
 
@@ -18,6 +20,7 @@ import java.util.UUID;
 @Repository
 public class ArtesanoRepositoryPostgresAdapter implements ArtesanoRepository {
 
+    private static final Logger log = LoggerFactory.getLogger(ArtesanoRepositoryPostgresAdapter.class);
     private final SpringDataArtesanoRepository springDataRepository;
 
     public ArtesanoRepositoryPostgresAdapter(SpringDataArtesanoRepository springDataRepository) {
@@ -27,7 +30,7 @@ public class ArtesanoRepositoryPostgresAdapter implements ArtesanoRepository {
 
     @Override
     public Artesano guardar(Artesano artesano) {
-        System.out.println("🔥🔥🔥 INGRESÓ AL ADAPTADOR DE POSTGRESQL 🔥🔥🔥");
+        log.debug("Persistiendo entidad Artesano en adaptador PostgreSQL.");
         ArtesanoEntity entity = toEntity(artesano);
         ArtesanoEntity guardado = springDataRepository.save(entity);
         return toDomain(guardado);

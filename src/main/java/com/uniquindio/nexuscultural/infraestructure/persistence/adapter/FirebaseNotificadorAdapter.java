@@ -4,6 +4,8 @@ import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.Firestore;
 import com.google.firebase.cloud.FirestoreClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -11,6 +13,8 @@ import java.util.Map;
 
 @Component
 public class FirebaseNotificadorAdapter {
+
+    private static final Logger log = LoggerFactory.getLogger(FirebaseNotificadorAdapter.class);
 
     public void enviarCorreoOtp(String emailDestino, String codigoOtp) {
         try {
@@ -32,10 +36,10 @@ public class FirebaseNotificadorAdapter {
             // 3. Insertar el registro en la colección "mail"
             ApiFuture<DocumentReference> future = db.collection("mail").add(emailData);
 
-            System.out.println("✅ [FIRESTORE]: Documento de correo creado con ID: " + future.get().getId());
+            log.info("Documento de correo OTP registrado en Firestore con ID: {}", future.get().getId());
 
         } catch (Exception e) {
-            System.err.println("❌ [FIRESTORE ERROR]: Error al registrar el correo en Firestore: " + e.getMessage());
+            log.error("Error al registrar el correo OTP en Firestore: {}", e.getMessage());
         }
     }
 }
